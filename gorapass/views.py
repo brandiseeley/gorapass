@@ -46,6 +46,7 @@ def populate_hikes_datatable(request):
   ## Populate the data table
   for i in range(len(hike_data_csv)):
     Hikes.objects.create(
+      stamp = Stamps.objects.get(stamp_name=hike_data_csv['stamp_name'][i]),
       stamp_name = hike_data_csv['stamp_name'][i],
       hike_name = hike_data_csv['hike_name'][i],
       hike_link = hike_data_csv['hike_link'][i],
@@ -70,3 +71,8 @@ def populate_hikes_datatable(request):
       completed_at_date = '1970-01-01'
           )
   return(HttpResponse('Data was reset'))
+
+def empty_hikes_datatable(request):
+  ## Reset data table to null
+  Hikes.objects.all().delete()
+  return(HttpResponse('Data was removed.'))
