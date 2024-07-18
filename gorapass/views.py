@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.core import serializers
 from django.conf import settings
 
 from gorapass.models import Stamps
@@ -12,8 +13,6 @@ import os
 def index(request):
 
     return HttpResponse('Hello, World. This is Naya and Brandi\'s super cool app.')
-
-
 
 def populate_stamps_datatable(request):
     ## Reset data table to null
@@ -37,7 +36,6 @@ def populate_stamps_datatable(request):
             completed_at_date = '1970-01-01'
             )
     return(HttpResponse('Data was reset'))
-
 
 def populate_hikes_datatable(request):
   ## Reset data table to null
