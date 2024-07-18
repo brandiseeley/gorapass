@@ -1,5 +1,6 @@
 from django.contrib import admin
 
-from .models import Stamp
+from .models import Stamps, Hikes
 
-admin.site.register(Stamp)
+admin.site.register(Stamps)
+admin.site.register(Hikes)
