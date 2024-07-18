@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.core import serializers
 from django.conf import settings
 
 from gorapass.models import Stamp
@@ -8,6 +9,10 @@ import os
 
 def index(request):
     return HttpResponse('Hello, World. This is Naya and Brandi\'s super cool app.')
+
+def stamps(request):
+    stamps = serializers.serialize('json', Stamp.objects.all())
+    return HttpResponse(stamps, content_type='application/json')
 
 def populate_database(request):
     # Delete any existing objects in the database
