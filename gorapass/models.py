@@ -18,7 +18,6 @@ class Stamps(models.Model):
 
 class Hikes(models.Model):
     stamp = models.ForeignKey(Stamps, on_delete=models.CASCADE)
-    stamp_name = models.TextField() ##.ForeignKey(Stamps, to_field='stamp_name', on_delete=models.CASCADE)
     hike_name = models.TextField()
     hike_link = models.URLField()
     starting_point = models.TextField()
