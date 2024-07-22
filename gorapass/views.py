@@ -1,11 +1,11 @@
+import os
+import pandas as pd
+
 from django.http import HttpResponse
-from django.core import serializers
 from django.conf import settings
 
 from gorapass.models import Stamps
 from gorapass.models import Hikes
-import pandas as pd
-import os
 
 # import csv
 # import os
@@ -22,7 +22,7 @@ def populate_stamps_datatable(request):
     stamp_data_csv = pd.read_csv(stamp_data_path)
     ## Populate the data table
     for i in range(len(stamp_data_csv)):
-      Stamps.objects.create(
+        Stamps.objects.create(
             stage_number = stamp_data_csv['stage_number'][i],
             spp_number = stamp_data_csv['spp_number'][i],
             stamp_name = stamp_data_csv['stamp_name'][i],
@@ -35,44 +35,44 @@ def populate_stamps_datatable(request):
             lon = stamp_data_csv['lon'][i],
             completed_at_date = '1970-01-01'
             )
-    return(HttpResponse('Data was reset'))
+    return HttpResponse('Data was reset')
 
 def populate_hikes_datatable(request):
-  ## Reset data table to null
-  Hikes.objects.all().delete()
-  ## Get base data
-  hike_data_path = os.path.join(settings.BASE_DIR, 'gorapass/hike_data/matched_hikes_for_app.csv')
-  hike_data_csv = pd.read_csv(hike_data_path)
-  ## Populate the data table
-  for i in range(len(hike_data_csv)):
-    Hikes.objects.create(
-      stamp = Stamps.objects.get(stamp_name=hike_data_csv['stamp_name'][i]),
-      stamp_name = hike_data_csv['stamp_name'][i],
-      hike_name = hike_data_csv['hike_name'][i],
-      hike_link = hike_data_csv['hike_link'][i],
-      starting_point = hike_data_csv['starting_point'][i],
-      starting_point_elevation = hike_data_csv['starting_point_elevation'][i],
-      starting_point_elevation_units = hike_data_csv['starting_point_elevation_units'][i],
-      lat_start = hike_data_csv['lat_start'][i],
-      lon_start = hike_data_csv['lon_start'][i],
-      ending_point = hike_data_csv['ending_point'][i],
-      ending_point_elevation = hike_data_csv['ending_point_elevation'][i],
-      ending_point_elevation_units = hike_data_csv['ending_point_elevation_units'][i],
-      lat_end = hike_data_csv['lat_end'][i],
-      lon_end = hike_data_csv['lon_end'][i],
-      total_elevation_gain = hike_data_csv['total_elevation_gain'][i],
-      total_elevation_gain_units = hike_data_csv['total_elevation_gain_units'][i],
-      difficulty_level = hike_data_csv['difficulty_level'][i],
-      recommended_equipment_summer = hike_data_csv['recommended_equipment_summer'][i],
-      recommended_equipment_winter = hike_data_csv['recommended_equipment_winter'][i],
-      page_views = hike_data_csv['page_views'][i],
-      directions_to_start = hike_data_csv['directions_to_start'][i],
-      hike_description = hike_data_csv['hike_description'][i],
-      completed_at_date = '1970-01-01'
-          )
-  return(HttpResponse('Data was reset'))
+    ## Reset data table to null
+    Hikes.objects.all().delete()
+    ## Get base data
+    hike_data_path = os.path.join(settings.BASE_DIR, 'gorapass/hike_data/matched_hikes_for_app.csv')
+    hike_data_csv = pd.read_csv(hike_data_path)
+    ## Populate the data table
+    for i in range(len(hike_data_csv)):
+        Hikes.objects.create(
+            stamp = Stamps.objects.get(stamp_name=hike_data_csv['stamp_name'][i]),
+            stamp_name = hike_data_csv['stamp_name'][i],
+            hike_name = hike_data_csv['hike_name'][i],
+            hike_link = hike_data_csv['hike_link'][i],
+            starting_point = hike_data_csv['starting_point'][i],
+            starting_point_elevation = hike_data_csv['starting_point_elevation'][i],
+            starting_point_elevation_units = hike_data_csv['starting_point_elevation_units'][i],
+            lat_start = hike_data_csv['lat_start'][i],
+            lon_start = hike_data_csv['lon_start'][i],
+            ending_point = hike_data_csv['ending_point'][i],
+            ending_point_elevation = hike_data_csv['ending_point_elevation'][i],
+            ending_point_elevation_units = hike_data_csv['ending_point_elevation_units'][i],
+            lat_end = hike_data_csv['lat_end'][i],
+            lon_end = hike_data_csv['lon_end'][i],
+            total_elevation_gain = hike_data_csv['total_elevation_gain'][i],
+            total_elevation_gain_units = hike_data_csv['total_elevation_gain_units'][i],
+            difficulty_level = hike_data_csv['difficulty_level'][i],
+            recommended_equipment_summer = hike_data_csv['recommended_equipment_summer'][i],
+            recommended_equipment_winter = hike_data_csv['recommended_equipment_winter'][i],
+            page_views = hike_data_csv['page_views'][i],
+            directions_to_start = hike_data_csv['directions_to_start'][i],
+            hike_description = hike_data_csv['hike_description'][i],
+            completed_at_date = '1970-01-01'
+        )
+    return HttpResponse('Data was reset')
 
 def empty_hikes_datatable(request):
-  ## Reset data table to null
-  Hikes.objects.all().delete()
-  return(HttpResponse('Data was removed.'))
+    ## Reset data table to null
+    Hikes.objects.all().delete()
+    return HttpResponse('Data was removed.')
