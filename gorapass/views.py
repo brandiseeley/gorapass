@@ -7,11 +7,7 @@ from django.conf import settings
 from gorapass.models import Stamps
 from gorapass.models import Hikes
 
-# import csv
-# import os
-
 def index(request):
-
     return HttpResponse('Hello, World. This is Naya and Brandi\'s super cool app.')
 
 def populate_stamps_datatable(request):
