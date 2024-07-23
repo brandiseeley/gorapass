@@ -43,7 +43,6 @@ def populate_hikes_datatable(request):
     for i in range(len(hike_data_csv)):
         Hikes.objects.create(
             stamp = Stamps.objects.get(stamp_name=hike_data_csv['stamp_name'][i]),
-            stamp_name = hike_data_csv['stamp_name'][i],
             hike_name = hike_data_csv['hike_name'][i],
             hike_link = hike_data_csv['hike_link'][i],
             starting_point = hike_data_csv['starting_point'][i],
