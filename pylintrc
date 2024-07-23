@@ -2,7 +2,12 @@
 load-plugins=pylint_django
 
 [MESSAGE CONTROL]
-disable=import-error,missing-module-docstring,missing-class-docstring,missing-function-docstring
+disable=import-error,
+        missing-module-docstring,
+        missing-class-docstring,
+        missing-function-docstring,
+        no-member,
+        unused-argument,
 
 [MAIN]
 
