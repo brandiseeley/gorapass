@@ -12,6 +12,10 @@ from gorapass.models import Hikes
 def index(request):
     return HttpResponse('Hello, World. This is Naya and Brandi\'s super cool app.')
 
+def stamps(request):
+    stamp_model = list(Stamps.objects.values())
+    return JsonResponse(stamp_model, safe=False)
+
 def hike(request, hike_id):
     hike_model = get_object_or_404(Hikes, pk=hike_id)
     hike_dict = model_to_dict(hike_model)

@@ -14,7 +14,7 @@ class Stamps(models.Model):
     completed_at_date = models.DateField()
 
     def __str__(self):
-      return self.stamp_name
+        return self.stamp_name
 
 class Hikes(models.Model):
     stamp = models.ForeignKey(Stamps, on_delete=models.CASCADE)
