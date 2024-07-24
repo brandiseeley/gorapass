@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, get_list_or_404
 from django.http import HttpResponse, JsonResponse
 from django.forms.models import model_to_dict
 from django.conf import settings
@@ -16,6 +16,11 @@ def hike(request, hike_id):
     hike_model = get_object_or_404(Hikes, pk=hike_id)
     hike_dict = model_to_dict(hike_model)
     return JsonResponse(hike_dict, safe=False)
+
+def hikes(request):
+    hike_models = Hikes.objects.all()
+    hike_dicts = [ model_to_dict(hike) for hike in hike_models ]
+    return JsonResponse(hike_dicts, safe=False)
 
 def populate_stamps_datatable(request):
     ## Reset data table to null
