@@ -1,6 +1,23 @@
+import json
+
 from django.test import Client, TestCase
 
 from gorapass.models import Hikes, Stamps
+
+TEST_STAMP = {
+    "id": 150,
+    "stage_number": 18,
+    "spp_number": "17",
+    "stamp_name": "Kocbekov dom na Korošici",
+    "elevation": 1808,
+    "elevation_unit": "m",
+    "alpine_club": "Celje-Matica",
+    "region": "Kamnik",
+    "route_type": "Main",
+    "lat": 46.35612316,
+    "lon": 14.63936863,
+    "completed_at_date": "1970-01-01"
+  }
 
 TEST_HIKES = [
     {
@@ -79,19 +96,23 @@ TEST_HIKES = [
 
 class HikesTestCase(TestCase):
     def setUp(self):
-        Stamps.objects.create()
+        Stamps.objects.create(**TEST_STAMP)
         for hike in TEST_HIKES:
-            Hikes.objects.create(**hike)
+            hike_data = hike | { 'stamp': Stamps.objects.get(pk=150) }
+            Hikes.objects.create(**hike_data)
         HikesTestCase.client = Client()
 
     def test_hikes_endpoint(self):
         """GET requests to the hikes endpoint give us a 200 status"""
         response = HikesTestCase.client.get('/gorapass/hikes')
         self.assertEqual(response.status_code, 200)
-    
+
     def test_hike_endpoint(self):
-        """Fetching a single item from hikes/<hike_id> endpoint gives us JSON with corrent attributes"""
-        # random_hike = Hikes.objects.all()
-        # print('HERERERERE')
-        # print(random_hike)
-        # print(random_hike.id)
+        """Fetching a single hike from 'hikes/<hike_id>' gives us JSON with corrent attributes"""
+        # Fetch the hike
+        response = HikesTestCase.client.get('/gorapass/hikes/1')
+        self.assertEqual(response.status_code, 200)
+        # Compare response data with data used to create the hike
+        data = json.loads(response.content)
+        data.pop('id')
+        self.assertEqual(data, TEST_HIKES[0])
