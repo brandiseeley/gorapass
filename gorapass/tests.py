@@ -5,7 +5,7 @@ from django.test import Client, TestCase
 from gorapass.models import Hikes, Stamps
 
 TEST_STAMP = {
-    "id": 150,
+    "id": 1,
     "stage_number": 18,
     "spp_number": "17",
     "stamp_name": "Kocbekov dom na Korošici",
@@ -21,7 +21,7 @@ TEST_STAMP = {
 
 TEST_HIKES = [
     {
-        "stamp": 150,
+        "stamp": 1,
         "hike_name": "Planina Podvežak - Kocbekov dom na Korošici",
         "hike_link": "https://www.hribi.net/izlet/planina_podvezak_kocbekov_dom_na_korosici/3/199/237",
         "starting_point": "Planina Podvežak",
@@ -45,7 +45,7 @@ TEST_HIKES = [
         "completed_at_date": "1970-01-01"
     },
     {
-        "stamp": 150,
+        "stamp": 1,
         "hike_name": "Robanov kot - Kocbekov dom na Korošici",
         "hike_link": "https://www.hribi.net/izlet/robanov_kot_kocbekov_dom_na_korosici/3/199/1831",
         "starting_point": "Robanov kot",
@@ -69,7 +69,7 @@ TEST_HIKES = [
         "completed_at_date": "1970-01-01"
     },
     {
-        "stamp": 150,
+        "stamp": 1,
         "hike_name": "Za Loncem - Kocbekov dom na Korošici",
         "hike_link": "https://www.hribi.net/izlet/za_loncem_kocbekov_dom_na_korosici/3/199/1264",
         "starting_point": "Za Loncem",
@@ -98,7 +98,7 @@ class HikesTestCase(TestCase):
     def setUp(self):
         Stamps.objects.create(**TEST_STAMP)
         for hike in TEST_HIKES:
-            hike_data = hike | { 'stamp': Stamps.objects.get(pk=150) }
+            hike_data = hike | { 'stamp': Stamps.objects.get(pk=1) }
             Hikes.objects.create(**hike_data)
         HikesTestCase.client = Client()
 
