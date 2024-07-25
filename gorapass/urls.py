@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('hikes', views.hikes, name='hikes'),
     path('stamps', views.stamps, name='stamps'),
     path('hikes/<int:hike_id>', views.hike, name='hike'),
     path('populate_stamps_datatable', views.populate_stamps_datatable, name='populate_stamps_datatable'),
