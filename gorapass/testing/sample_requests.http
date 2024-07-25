@@ -1,0 +1,51 @@
+# Request to fetch all hikes in JSON format
+GET http://localhost:8000/gorapass/hikes HTTP/1.1
+
+###
+
+# Request to fetch all stamps in JSON format
+GET http://localhost:8000/gorapass/stamps HTTP/1.1
+
+###
+
+# Requests to fetch hikes with filtration criteria
+
+# Three hikes have this starting point
+GET http://localhost:8000/gorapass/hikes HTTP/1.1
+content-type: application/json
+
+{
+    "starting_point": "Kraljev dol"
+}
+
+###
+
+# Sending a request with a non-existant attribute return a 400 response
+GET http://localhost:8000/gorapass/hikes HTTP/1.1
+content-type: application/json
+
+{
+    "not_present": "foo"
+}
+
+###
+
+# Sending multiple filters will return hikes who match *all* criteria
+GET http://localhost:8000/gorapass/hikes HTTP/1.1
+content-type: application/json
+
+{
+    "recommended_equipment_summer": "nan",
+    "total_elevation_gain": "1000",
+    "recommended_equipment_winter": "cepin, dereze"
+}
+
+###
+
+# Sending filters that don't match any hikes will return an empty list
+GET http://localhost:8000/gorapass/hikes HTTP/1.1
+content-type: application/json
+
+{
+    "recommended_equipment_summer": "not a value"
+}

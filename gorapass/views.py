@@ -1,8 +1,9 @@
+import json
 import os
 import pandas as pd
 
-from django.shortcuts import get_object_or_404, get_list_or_404
-from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.forms.models import model_to_dict
 from django.conf import settings
 
@@ -23,8 +24,33 @@ def hike(request, hike_id):
 
 def hikes(request):
     hike_models = Hikes.objects.all()
+
+    # Filter out hikes if there is filtration criteria in the request
+    if request.body:
+        print('FILTERING HIKES')
+        filtration_criteria = json.loads(request.body)
+        if not valid_hike_filters(filtration_criteria.keys()):
+            return HttpResponseBadRequest('Invalid filtration criteria')
+
+        hike_models = filter_hikes(hike_models, filtration_criteria)
+
     hike_dicts = [ model_to_dict(hike) for hike in hike_models ]
     return JsonResponse(hike_dicts, safe=False)
+
+def valid_hike_filters(filters):
+    for attribute in filters:
+        if not hasattr(Hikes, attribute):
+            return False
+    return True
+
+def filter_hikes(hike_models, criteria):
+    for attribute, value in criteria.items():
+        hike_models = [ hike for hike in hike_models if str(getattr(hike, attribute)) == value ]
+        # Return early if we run out of matching hikes
+        if len(hike_models) == 0:
+            return hike_models
+
+    return hike_models
 
 def populate_stamps_datatable(request):
     ## Reset data table to null
