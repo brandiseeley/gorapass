@@ -15,17 +15,123 @@ GET http://localhost:8000/gorapass/hikes HTTP/1.1
 content-type: application/json
 
 {
-    "starting_point": "Kraljev dol"
+    "filters": [
+        {
+            "attribute_name": "starting_point",
+            "attribute_value": "Kraljev dol",
+            "filter_type": "exact"
+        }    
+    ]
 }
 
 ###
+# We can match parts of words
+GET http://localhost:8000/gorapass/hikes HTTP/1.1
+content-type: application/json
 
+{
+    "filters": [
+        {
+            "attribute_name": "starting_point",
+            "attribute_value": "jev",
+            "filter_type": "partial"
+        }   
+    ]
+}
+
+###
+# We can filter for attributes that are 'less than' some value
+GET http://localhost:8000/gorapass/hikes HTTP/1.1
+content-type: application/json
+
+{
+    "filters": [
+        {
+            "attribute_name": "total_elevation_gain",
+            "attribute_value": 50,
+            "filter_type": "less_than"
+        }
+    ]
+}
+
+###
+# We can filter for attributes that are 'greater than' some value
+GET http://localhost:8000/gorapass/hikes HTTP/1.1
+content-type: application/json
+
+{
+    "filters": [
+        {
+            "attribute_name": "total_elevation_gain",
+            "attribute_value": 3000,
+            "filter_type": "greater_than"
+        }
+    ]
+}
+
+###
+# We can combine 'greater than' and 'less than' to select a range
+GET http://localhost:8000/gorapass/hikes HTTP/1.1
+content-type: application/json
+
+{
+    "filters": [
+        {
+            "attribute_name": "total_elevation_gain",
+            "attribute_value": 3000,
+            "filter_type": "less_than"
+        },
+        {
+            "attribute_name": "total_elevation_gain",
+            "attribute_value": 2000,
+            "filter_type": "greater_than"
+        }
+    ]
+}
+
+###
 # Sending a request with a non-existant attribute return a 400 response
 GET http://localhost:8000/gorapass/hikes HTTP/1.1
 content-type: application/json
 
 {
-    "not_present": "foo"
+    "filters": [
+        {
+            "attribute_name": "not_present",
+            "attribute_value": "Kraljev dol",
+            "filter_type": "exact"
+        }     
+    ]
+}
+
+###
+# Sending a request without the necessary filtration criteria returns a 400 response
+GET http://localhost:8000/gorapass/hikes HTTP/1.1
+content-type: application/json
+
+{
+    "filters": [
+        {
+            "attribute_value": "Kraljev dol",
+            "filter_type": "exact"
+        }     
+    ]
+}
+
+###
+# Sending a request with unknown filtration criteria returns a 400 response
+GET http://localhost:8000/gorapass/hikes HTTP/1.1
+content-type: application/json
+
+{
+    "filters": [
+        {
+            "whoops": "this shouldn't be here",
+            "attribute_name": "starting_location",
+            "attribute_value": "Kraljev dol",
+            "filter_type": "exact"
+        } 
+    ]
 }
 
 ###
@@ -35,9 +141,23 @@ GET http://localhost:8000/gorapass/hikes HTTP/1.1
 content-type: application/json
 
 {
-    "recommended_equipment_summer": "nan",
-    "total_elevation_gain": "1000",
-    "recommended_equipment_winter": "cepin, dereze"
+    "filters": [
+        {
+            "attribute_name": "recommended_equipment_summer",
+            "attribute_value": "nan",
+            "filter_type": "exact"
+        },
+        {
+            "attribute_name": "total_elevation_gain",
+            "attribute_value": 1000,
+            "filter_type": "exact"
+        },
+        {
+            "attribute_name": "recommended_equipment_winter",
+            "attribute_value": "cepin, dereze",
+            "filter_type": "exact"
+        }
+    ]
 }
 
 ###
@@ -47,5 +167,11 @@ GET http://localhost:8000/gorapass/hikes HTTP/1.1
 content-type: application/json
 
 {
-    "recommended_equipment_summer": "not a value"
+    "filters": [
+        {
+            "attribute_name": "starting_point",
+            "attribute_value": "random value",
+            "filter_type": "exact"
+        }  
+    ]
 }
