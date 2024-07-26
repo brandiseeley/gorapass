@@ -15,7 +15,7 @@ GET http://localhost:8000/gorapass/hikes HTTP/1.1
 content-type: application/json
 
 {
-    "filters": [
+    "selectors": [
         {
             "attribute_name": "starting_point",
             "attribute_value": "Kraljev dol",
@@ -30,7 +30,7 @@ GET http://localhost:8000/gorapass/hikes HTTP/1.1
 content-type: application/json
 
 {
-    "filters": [
+    "selectors": [
         {
             "attribute_name": "starting_point",
             "attribute_value": "jev",
@@ -45,7 +45,7 @@ GET http://localhost:8000/gorapass/hikes HTTP/1.1
 content-type: application/json
 
 {
-    "filters": [
+    "selectors": [
         {
             "attribute_name": "total_elevation_gain",
             "attribute_value": 50,
@@ -60,7 +60,7 @@ GET http://localhost:8000/gorapass/hikes HTTP/1.1
 content-type: application/json
 
 {
-    "filters": [
+    "selectors": [
         {
             "attribute_name": "total_elevation_gain",
             "attribute_value": 3000,
@@ -75,7 +75,7 @@ GET http://localhost:8000/gorapass/hikes HTTP/1.1
 content-type: application/json
 
 {
-    "filters": [
+    "selectors": [
         {
             "attribute_name": "total_elevation_gain",
             "attribute_value": 3000,
@@ -95,7 +95,7 @@ GET http://localhost:8000/gorapass/hikes HTTP/1.1
 content-type: application/json
 
 {
-    "filters": [
+    "selectors": [
         {
             "attribute_name": "not_present",
             "attribute_value": "Kraljev dol",
@@ -110,7 +110,7 @@ GET http://localhost:8000/gorapass/hikes HTTP/1.1
 content-type: application/json
 
 {
-    "filters": [
+    "selectors": [
         {
             "attribute_value": "Kraljev dol",
             "filter_type": "exact"
@@ -124,12 +124,27 @@ GET http://localhost:8000/gorapass/hikes HTTP/1.1
 content-type: application/json
 
 {
-    "filters": [
+    "selectors": [
         {
             "whoops": "this shouldn't be here",
             "attribute_name": "starting_location",
             "attribute_value": "Kraljev dol",
             "filter_type": "exact"
+        } 
+    ]
+}
+
+###
+# Sending a request with an invalid filter type returns a 400 response
+GET http://localhost:8000/gorapass/hikes HTTP/1.1
+content-type: application/json
+
+{
+    "selectors": [
+        {
+            "attribute_name": "starting_point",
+            "attribute_value": "Kraljev dol",
+            "filter_type": "exact_match"
         } 
     ]
 }
@@ -141,7 +156,7 @@ GET http://localhost:8000/gorapass/hikes HTTP/1.1
 content-type: application/json
 
 {
-    "filters": [
+    "selectors": [
         {
             "attribute_name": "recommended_equipment_summer",
             "attribute_value": "nan",
@@ -167,7 +182,7 @@ GET http://localhost:8000/gorapass/hikes HTTP/1.1
 content-type: application/json
 
 {
-    "filters": [
+    "selectors": [
         {
             "attribute_name": "starting_point",
             "attribute_value": "random value",

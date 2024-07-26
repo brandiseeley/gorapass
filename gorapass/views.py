@@ -29,11 +29,12 @@ def hikes(request):
 
     # Filter out hikes if there is filtration criteria in the request
     if request.body:
-        filters = json.loads(request.body)['filters']
-        if not ModelFilter.valid_hike_filters(filters):
-            return HttpResponseBadRequest('Invalid filtration criteria')
+        selectors = json.loads(request.body)['selectors']
+        valid_selectors_status = ModelFilter.validate_hike_selectors(selectors)
+        if not valid_selectors_status['success']:
+            return HttpResponseBadRequest(valid_selectors_status['message'])
 
-        hike_models = ModelFilter.filter_hikes(hike_models, filters)
+        hike_models = ModelFilter.filter_hikes(hike_models, selectors)
 
     hike_dicts = [ model_to_dict(hike) for hike in hike_models ]
     return JsonResponse(hike_dicts, safe=False)
