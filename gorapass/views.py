@@ -10,16 +10,7 @@ from django.conf import settings
 from gorapass.models import Stamps
 from gorapass.models import Hikes
 
-ATTRIBUTE_NAME = 'attribute_name'
-ATTRIBUTE_VALUE = 'attribute_value'
-FILTER_TYPE = 'filter_type'
-
-FILTER_KEYS = {
-    ATTRIBUTE_NAME,
-    ATTRIBUTE_VALUE,
-    FILTER_TYPE,
-    }
-
+from .src.filter_models import ModelFilter
 
 def index(request):
     return HttpResponse('Hello, World. This is Naya and Brandi\'s super cool app.')
@@ -39,44 +30,13 @@ def hikes(request):
     # Filter out hikes if there is filtration criteria in the request
     if request.body:
         filters = json.loads(request.body)['filters']
-        if not valid_hike_filters(filters):
+        if not ModelFilter.valid_hike_filters(filters):
             return HttpResponseBadRequest('Invalid filtration criteria')
 
-        hike_models = filter_hikes(hike_models, filters)
+        hike_models = ModelFilter.filter_hikes(hike_models, filters)
 
     hike_dicts = [ model_to_dict(hike) for hike in hike_models ]
     return JsonResponse(hike_dicts, safe=False)
-
-def valid_hike_filters(filters):
-    for filter in filters:
-        if set(filter.keys()) != FILTER_KEYS:
-            return False
-        if not hasattr(Hikes, filter[ATTRIBUTE_NAME]):
-            return False
-        
-    return True
-
-def filter_hikes(hike_models, filters):
-    for filter in filters:
-        attribute = filter[ATTRIBUTE_NAME]
-        value = filter[ATTRIBUTE_VALUE]
-        match filter[FILTER_TYPE]:
-            case 'exact':
-                hike_models = [ hike for hike in hike_models if getattr(hike, attribute) == value ]
-            case 'partial':
-                hike_models = [ hike for hike in hike_models if value.lower() in str(getattr(hike, attribute)).lower() ]
-            case 'less_than':
-                hike_models = [ hike for hike in hike_models if getattr(hike, attribute) < value ]
-            case 'greater_than':
-                hike_models = [ hike for hike in hike_models if getattr(hike, attribute) > value ]
-                pass
-            case _:
-                pass
-        # Return early if we run out of matching hikes
-        if len(hike_models) == 0:
-            return hike_models
-
-    return hike_models
 
 def populate_stamps_datatable(request):
     ## Reset data table to null
