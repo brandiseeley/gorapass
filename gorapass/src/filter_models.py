@@ -1,4 +1,3 @@
-from gorapass.models import Hikes
 
 class ModelFilter:
     ATTRIBUTE_NAME = 'attribute_name'
@@ -14,37 +13,37 @@ class ModelFilter:
     FILTER_TYPES = { 'exact', 'partial', 'less_than', 'greater_than' }
 
     @classmethod
-    def filter_hikes(cls, hike_models, filters):
+    def filter_data(cls, data_model, filters):
         for selector in filters:
             attribute = selector[ModelFilter.ATTRIBUTE_NAME]
             value = selector[ModelFilter.ATTRIBUTE_VALUE]
             match selector[ModelFilter.FILTER_TYPE]:
                 case 'exact':
-                    hike_models = [ hike
-                                    for hike in hike_models
-                                    if getattr(hike, attribute) == value ]
+                    data_model = [ record
+                                    for record in data_model
+                                    if getattr(record, attribute) == value ]
                 case 'partial':
-                    hike_models = [ hike
-                                    for hike in hike_models
-                                    if value.lower() in str(getattr(hike, attribute)).lower() ]
+                    data_model = [ record
+                                    for record in data_model
+                                    if value.lower() in str(getattr(record, attribute)).lower() ]
                 case 'less_than':
-                    hike_models = [ hike
-                                    for hike in hike_models
-                                    if getattr(hike, attribute) < value ]
+                    data_model = [ record
+                                    for record in data_model
+                                    if getattr(record, attribute) < value ]
                 case 'greater_than':
-                    hike_models = [ hike
-                                    for hike in hike_models
-                                    if getattr(hike, attribute) > value ]
+                    data_model = [ record
+                                    for record in data_model
+                                    if getattr(record, attribute) > value ]
                 case _:
                     pass
-            # Return early if we run out of matching hikes
-            if len(hike_models) == 0:
-                return hike_models
+            # Return early if we run out of matching records
+            if len(data_model) == 0:
+                return data_model
 
-        return hike_models
+        return data_model
 
     @classmethod
-    def validate_hike_selectors(cls, selectors):
+    def validate_selectors(cls, data_model, selectors):
         for selector in selectors:
 
             # Check that the keys for the selector object are correct
@@ -58,14 +57,14 @@ class ModelFilter:
                     'message': message,
                     }
 
-            # Check that the attribute name exists on hikes
+            # Check that the attribute name exists on data model
             attribute_name = selector[ModelFilter.ATTRIBUTE_NAME]
-            if not hasattr(Hikes, attribute_name):
+            if not hasattr(data_model, attribute_name):
                 return {
                     'success': False,
-                    'message': f'Attribute: "{attribute_name}" does not exist on Hikes models',
+                    'message': f'Attribute: "{attribute_name}" does not exist on the data model',
                     }
-    
+
             # Check that the filter type exists
             filter_type = selector[ModelFilter.FILTER_TYPE]
             if not filter_type in ModelFilter.FILTER_TYPES:

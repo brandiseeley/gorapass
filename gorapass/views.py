@@ -16,8 +16,22 @@ def index(request):
     return HttpResponse('Hello, World. This is Naya and Brandi\'s super cool app.')
 
 def stamps(request):
-    stamp_model = list(Stamps.objects.values())
-    return JsonResponse(stamp_model, safe=False)
+    stamp_model = Stamps.objects.all()
+
+    # Filter out stamps if there is filtration criteria on the request
+    if request.body:
+        print(request.body)
+        print(type(request.body))
+        selectors = json.loads(request.body)['selectors']
+        valid_selectors_status = ModelFilter.validate_selectors(Stamps, selectors)
+        if not valid_selectors_status['success']:
+            return HttpResponseBadRequest(valid_selectors_status['message'])
+
+        stamp_model = ModelFilter.filter_data(stamp_model, selectors)
+    stamp_dict = [ model_to_dict(stamp) for stamp in stamp_model ]
+
+
+    return JsonResponse(stamp_dict, safe=False)
 
 def hike(request, hike_id):
     hike_model = get_object_or_404(Hikes, pk=hike_id)
@@ -29,12 +43,15 @@ def hikes(request):
 
     # Filter out hikes if there is filtration criteria in the request
     if request.body:
+        print(request.body)
+        print(type(request.body))
         selectors = json.loads(request.body)['selectors']
-        valid_selectors_status = ModelFilter.validate_hike_selectors(selectors)
+        print(selectors)
+        valid_selectors_status = ModelFilter.validate_selectors(Hikes, selectors)
         if not valid_selectors_status['success']:
             return HttpResponseBadRequest(valid_selectors_status['message'])
 
-        hike_models = ModelFilter.filter_hikes(hike_models, selectors)
+        hike_models = ModelFilter.filter_data(hike_models, selectors)
 
     hike_dicts = [ model_to_dict(hike) for hike in hike_models ]
     return JsonResponse(hike_dicts, safe=False)
