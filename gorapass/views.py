@@ -15,6 +15,11 @@ from .src.filter_models import ModelFilter
 def index(request):
     return HttpResponse('Hello, World. This is Naya and Brandi\'s super cool app.')
 
+def stamp(request, stamp_id):
+    stamp_model = get_object_or_404(Stamps, pk=stamp_id)
+    stamp_dict = model_to_dict(stamp_model)
+    return JsonResponse(stamp_dict, safe=False)
+
 def stamps(request):
     stamp_model = Stamps.objects.all()
 
