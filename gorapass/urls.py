@@ -8,6 +8,7 @@ urlpatterns = [
     path('stamps', views.stamps, name='stamps'),
     path('hikes/<int:hike_id>', views.hike, name='hike'),
     path('users/<int:user_id>', views.user, name='user'),
+    path('users/login', views.login_user, name='login'),
     path('users/logout', views.logout_user, name='logout'),
     path('users/login_test_user', views.login_test_user, name="login_test_user"),
     path('populate_stamps_datatable', views.populate_stamps_datatable, name='populate_stamps_datatable'),

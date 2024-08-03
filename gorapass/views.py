@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.forms.models import model_to_dict
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 
 from gorapass.models import CompletedHikes
 from gorapass.models import Stamps
@@ -45,7 +45,11 @@ def user(request, user_id):
     if request.user.is_authenticated and request.user.pk == user_id:
         return JsonResponse(model_to_dict(request.user))
     else:
-        return HttpResponse('You must be logged in to view user data')
+        return redirect('login')
+
+def login_user(request):
+    """A temporary view that should eventually respond to GET and POST requests"""
+    return HttpResponse('Login page goes here.')
 
 def login_test_user(request):
     """A temporary view to log in a test user until we create the ability to log in different users"""

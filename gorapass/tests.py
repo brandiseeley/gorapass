@@ -1,6 +1,7 @@
 import json
 
 from django.contrib.auth.models import User
+from django.forms.models import model_to_dict
 from django.test import Client, TestCase
 
 from gorapass.models import Hikes, Stamps
@@ -121,9 +122,28 @@ class HikesTestCase(TestCase):
 class UserTestCase(TestCase):
     def setUp(self):
         UserTestCase.client = Client()
-        jane = User.objects.create_user("jane_doe", "jane@doe.com", "gorapass")
-        # TODO: Add hikes for Jane and test that our responses contain the correct hikes.
+        jane = User.objects.create_user('jane_doe', 'jane@doe.com', 'gorapass')
 
-    def test_login_works(self):
-        response = UserTestCase.client.get("/gorapass/users/1", {"username": "jane_doe", "password": "gorapass"})
+    def test_user_page_not_logged_in(self):
+        response = UserTestCase.client.get('/gorapass/users/1')
+        self.assertRedirects(response, '/gorapass/users/login')
+
+    def test_user_page_logged_in(self):
+        UserTestCase.client.login(username='jane_doe', password='gorapass')
+        response = UserTestCase.client.get('/gorapass/users/1')
         self.assertEqual(response.status_code, 200)
+
+        user = User.objects.get(pk=1)
+        user_data = model_to_dict(user)
+        user_data.pop('date_joined')
+        user_data.pop('last_login')
+
+        response_data = json.loads(response.content)
+        response_data.pop('date_joined')
+        response_data.pop('last_login')
+        self.assertEqual(response_data, user_data)
+
+    def test_other_user_page_logged_in(self):
+        UserTestCase.client.login(username='jane_doe', password='gorapass')
+        response = UserTestCase.client.get('/gorapass/users/2')
+        self.assertRedirects(response, '/gorapass/users/login')
