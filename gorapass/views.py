@@ -3,7 +3,7 @@ import os
 import pandas as pd
 
 from django.conf import settings
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.forms.models import model_to_dict
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404
@@ -45,7 +45,7 @@ def user(request, user_id):
     if request.user.is_authenticated and request.user.pk == user_id:
         return JsonResponse(model_to_dict(request.user))
     else:
-        return HttpResponse('nope')
+        return HttpResponse('You must be logged in to view user data')
 
 def login_test_user(request):
     """A temporary view to log in a test user until we create the ability to log in different users"""
@@ -55,6 +55,11 @@ def login_test_user(request):
         return HttpResponse('Login successful')
     else:
         return HttpResponse('Login failed')
+
+def logout_user(request):
+    user = request.user
+    logout(request)
+    return HttpResponse(f'{user} has been logged out')
 
 def populate_stamps_datatable(request):
     ## Reset data table to null
