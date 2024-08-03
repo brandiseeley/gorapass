@@ -1,5 +1,6 @@
 import json
 
+from django.contrib.auth.models import User
 from django.test import Client, TestCase
 
 from gorapass.models import Hikes, Stamps
@@ -116,3 +117,13 @@ class HikesTestCase(TestCase):
         data = json.loads(response.content)
         data.pop('id')
         self.assertEqual(data, TEST_HIKES[0])
+
+class UserTestCase(TestCase):
+    def setUp(self):
+        UserTestCase.client = Client()
+        jane = User.objects.create_user("jane_doe", "jane@doe.com", "gorapass")
+        # TODO: Add hikes for Jane and test that our responses contain the correct hikes.
+
+    def test_login_works(self):
+        response = UserTestCase.client.get("/gorapass/users/1", {"username": "jane_doe", "password": "gorapass"})
+        self.assertEqual(response.status_code, 200)
