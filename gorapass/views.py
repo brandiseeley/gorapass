@@ -48,7 +48,7 @@ def user(request, user_id):
         return redirect('login')
 
 def login_user(request):
-    """A temporary view that should eventually respond to GET and POST requests"""
+    """A temporary view that should eventually respond to POST requests to log users in"""
     return HttpResponse('Login page goes here.')
 
 def login_test_user(request):
