@@ -25,8 +25,6 @@ def stamps(request):
 
     # Filter out stamps if there is filtration criteria on the request
     if request.body:
-        print(request.body)
-        print(type(request.body))
         selectors = json.loads(request.body)['selectors']
         valid_selectors_status = ModelFilter.validate_selectors(Stamps, selectors)
         if not valid_selectors_status['success']:
@@ -48,10 +46,7 @@ def hikes(request):
 
     # Filter out hikes if there is filtration criteria in the request
     if request.body:
-        print(request.body)
-        print(type(request.body))
         selectors = json.loads(request.body)['selectors']
-        print(selectors)
         valid_selectors_status = ModelFilter.validate_selectors(Hikes, selectors)
         if not valid_selectors_status['success']:
             return HttpResponseBadRequest(valid_selectors_status['message'])
