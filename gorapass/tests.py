@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.forms.models import model_to_dict
 from django.test import Client, TestCase
 
-from gorapass.models import Hikes, Stamps
+from gorapass.models import Hikes, Stamps, CompletedHikes
 
 TEST_STAMP = {
     "id": 1,
@@ -23,6 +23,7 @@ TEST_STAMP = {
 
 TEST_HIKES = [
     {
+        "id": 1,
         "stamp": 1,
         "hike_name": "Planina Podvežak - Kocbekov dom na Korošici",
         "hike_link": "https://www.hribi.net/izlet/planina_podvezak_kocbekov_dom_na_korosici/3/199/237",
@@ -47,6 +48,7 @@ TEST_HIKES = [
         "completed_at_date": "1970-01-01"
     },
     {
+        "id": 2,
         "stamp": 1,
         "hike_name": "Robanov kot - Kocbekov dom na Korošici",
         "hike_link": "https://www.hribi.net/izlet/robanov_kot_kocbekov_dom_na_korosici/3/199/1831",
@@ -71,6 +73,7 @@ TEST_HIKES = [
         "completed_at_date": "1970-01-01"
     },
     {
+        "id": 3,
         "stamp": 1,
         "hike_name": "Za Loncem - Kocbekov dom na Korošici",
         "hike_link": "https://www.hribi.net/izlet/za_loncem_kocbekov_dom_na_korosici/3/199/1264",
@@ -116,13 +119,30 @@ class HikesTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         # Compare response data with data used to create the hike
         data = json.loads(response.content)
-        data.pop('id')
         self.assertEqual(data, TEST_HIKES[0])
 
 class UserTestCase(TestCase):
     def setUp(self):
-        UserTestCase.client = Client()
+        # Populate test stamps
+        Stamps.objects.create(**TEST_STAMP)
+        stamp1 = Stamps.objects.get(pk=1)
+
+        # Populate test hikes
+        for hike in TEST_HIKES:
+            hike_data = hike | { 'stamp': Stamps.objects.get(pk=1) }
+            Hikes.objects.create(**hike_data)
+        
+        hike1 = Hikes.objects.get(pk=1)
+        hike2 = Hikes.objects.get(pk=2)
+        hike3 = Hikes.objects.get(pk=3)
+
+        # Populate test user
         jane = User.objects.create_user('jane_doe', 'jane@doe.com', 'gorapass')
+        CompletedHikes.objects.create(hike=hike1, user=jane)
+        CompletedHikes.objects.create(hike=hike2, user=jane)
+
+        # Client for making requests
+        UserTestCase.client = Client()
 
     def test_user_page_not_logged_in(self):
         response = UserTestCase.client.get('/gorapass/users/1')
@@ -147,3 +167,11 @@ class UserTestCase(TestCase):
         UserTestCase.client.login(username='jane_doe', password='gorapass')
         response = UserTestCase.client.get('/gorapass/users/2')
         self.assertRedirects(response, '/gorapass/users/login')
+
+    def test_fetch_completed_hikes(self):
+        UserTestCase.client.login(username='jane_doe', password='gorapass')
+        response = UserTestCase.client.get('/gorapass/users/1/completed_hikes')
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.content)
+        self.assertEqual(TEST_HIKES[0], data[0])
