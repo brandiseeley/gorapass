@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404, redirect
 from gorapass.models import CompletedHikes
 from gorapass.models import Stamps
 from gorapass.models import Hikes
+from gorapass.models import User
 
 from .src.filter_models import ModelFilter
 
@@ -44,6 +45,14 @@ def hikes(request):
 def user(request, user_id):
     if request.user.is_authenticated and request.user.pk == user_id:
         return JsonResponse(model_to_dict(request.user))
+    else:
+        return redirect('login')
+    
+def user_completed_hikes(request, user_id):
+    if request.user.is_authenticated and request.user.pk == user_id:
+        completed_hike_models = Hikes.objects.filter(completedhikes__user_id=user_id)
+        hike_dicts = [ model_to_dict(hike) for hike in completed_hike_models ]
+        return JsonResponse(hike_dicts, safe=False)
     else:
         return redirect('login')
 
