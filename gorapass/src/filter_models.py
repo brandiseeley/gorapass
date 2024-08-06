@@ -13,37 +13,37 @@ class ModelFilter:
     FILTER_TYPES = { 'exact', 'partial', 'less_than', 'greater_than' }
 
     @classmethod
-    def filter_data(cls, data_model, filters):
+    def filter_data(cls, data_models, filters):
         for selector in filters:
             attribute = selector[ModelFilter.ATTRIBUTE_NAME]
             value = selector[ModelFilter.ATTRIBUTE_VALUE]
             match selector[ModelFilter.FILTER_TYPE]:
                 case 'exact':
-                    data_model = [ record
-                                    for record in data_model
+                    data_models = [ record
+                                    for record in data_models
                                     if getattr(record, attribute) == value ]
                 case 'partial':
-                    data_model = [ record
-                                    for record in data_model
+                    data_models = [ record
+                                    for record in data_models
                                     if value.lower() in str(getattr(record, attribute)).lower() ]
                 case 'less_than':
-                    data_model = [ record
-                                    for record in data_model
+                    data_models = [ record
+                                    for record in data_models
                                     if getattr(record, attribute) < value ]
                 case 'greater_than':
-                    data_model = [ record
-                                    for record in data_model
+                    data_models = [ record
+                                    for record in data_models
                                     if getattr(record, attribute) > value ]
                 case _:
                     pass
             # Return early if we run out of matching records
-            if len(data_model) == 0:
-                return data_model
+            if len(data_models) == 0:
+                return data_models
 
-        return data_model
+        return data_models
 
     @classmethod
-    def validate_selectors(cls, data_model, selectors):
+    def validate_selectors(cls, data_models, selectors):
         for selector in selectors:
 
             # Check that the keys for the selector object are correct
@@ -59,7 +59,7 @@ class ModelFilter:
 
             # Check that the attribute name exists on data model
             attribute_name = selector[ModelFilter.ATTRIBUTE_NAME]
-            if not hasattr(data_model, attribute_name):
+            if not hasattr(data_models, attribute_name):
                 return {
                     'success': False,
                     'message': f'Attribute: "{attribute_name}" does not exist on the data model',
