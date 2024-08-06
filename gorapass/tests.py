@@ -200,7 +200,9 @@ class StampsTestCase(TestCase):
         """GET requests to the single stamp endpoint gives us a 200 status"""
         # Fetch single stamp
         response = StampsTestCase.client.get("/gorapass/stamps/1")
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 200)
+
+        print(response)
 
         # Check payload
         data = json.loads(response.content)
