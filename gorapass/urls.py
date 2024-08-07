@@ -6,6 +6,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('hikes', views.hikes, name='hikes'),
     path('stamps', views.stamps, name='stamps'),
+    path('stamps/<int:stamp_id>', views.stamp, name='stamp'),
     path('hikes/<int:hike_id>', views.hike, name='hike'),
     path('users/<int:user_id>', views.user, name='user'),
     path('users/<int:user_id>/completed_hikes', views.user_completed_hikes, name='user_completed_hikes'),

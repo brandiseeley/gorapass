@@ -7,6 +7,103 @@ GET http://localhost:8000/gorapass/hikes HTTP/1.1
 GET http://localhost:8000/gorapass/stamps HTTP/1.1
 
 ###
+# Request to fetch stamps with filtration criteria
+
+# Two stamps have this filtration criteria
+GET http://localhost:8000/gorapass/stamps HTTP/1.1
+content-type: application/json
+
+{
+    "selectors": [
+        {
+            "attribute_name": "region",
+            "attribute_value": "Pohorje",
+            "filter_type": "exact"
+        },
+        {
+          "attribute_name": "elevation",
+          "attribute_value": 1000,
+          "filter_type": "greater_than"
+        },
+        {
+          "attribute_name": "elevation",
+          "attribute_value": 1500,
+          "filter_type": "less_than"
+        },
+        {
+          "attribute_name":"stamp_name",
+          "attribute_value":"ka",
+          "filter_type":"partial"
+        }
+
+    ]
+}
+
+# Check 400 responses for Stamps API with invalid filters
+###
+# Sending a request with a non-existant attribute return a 400 response
+GET http://localhost:8000/gorapass/stamps HTTP/1.1
+content-type: application/json
+
+{
+    "selectors": [
+        {
+            "attribute_name": "not_present",
+            "attribute_value": "Pohorje",
+            "filter_type": "exact"
+        }
+    ]
+}
+
+###
+# Sending a request without the necessary filtration criteria returns a 400 response
+GET http://localhost:8000/gorapass/stamps HTTP/1.1
+content-type: application/json
+
+{
+    "selectors": [
+        {
+            "attribute_value": "Pohorje",
+            "filter_type": "exact"
+        }
+    ]
+}
+
+###
+# Sending a request with unknown filtration criteria returns a 400 response
+GET http://localhost:8000/gorapass/stamps HTTP/1.1
+content-type: application/json
+
+{
+    "selectors": [
+        {
+            "whoops": "this shouldn't be here",
+            "attribute_name": "region",
+            "attribute_value": "Pohorje",
+            "filter_type": "exact"
+        }
+    ]
+}
+
+###
+# Sending a request with an invalid filter type returns a 400 response
+GET http://localhost:8000/gorapass/stamps HTTP/1.1
+content-type: application/json
+
+{
+    "selectors": [
+        {
+            "attribute_name": "region",
+            "attribute_value": "Pohorje",
+            "filter_type": "exact_match"
+        }
+    ]
+}
+
+
+
+
+###
 
 # Requests to fetch hikes with filtration criteria
 
@@ -20,7 +117,7 @@ content-type: application/json
             "attribute_name": "starting_point",
             "attribute_value": "Kraljev dol",
             "filter_type": "exact"
-        }    
+        }
     ]
 }
 
@@ -35,7 +132,7 @@ content-type: application/json
             "attribute_name": "starting_point",
             "attribute_value": "jev",
             "filter_type": "partial"
-        }   
+        }
     ]
 }
 
@@ -100,7 +197,7 @@ content-type: application/json
             "attribute_name": "not_present",
             "attribute_value": "Kraljev dol",
             "filter_type": "exact"
-        }     
+        }
     ]
 }
 
@@ -114,7 +211,7 @@ content-type: application/json
         {
             "attribute_value": "Kraljev dol",
             "filter_type": "exact"
-        }     
+        }
     ]
 }
 
@@ -130,7 +227,7 @@ content-type: application/json
             "attribute_name": "starting_location",
             "attribute_value": "Kraljev dol",
             "filter_type": "exact"
-        } 
+        }
     ]
 }
 
@@ -145,7 +242,7 @@ content-type: application/json
             "attribute_name": "starting_point",
             "attribute_value": "Kraljev dol",
             "filter_type": "exact_match"
-        } 
+        }
     ]
 }
 
@@ -187,6 +284,6 @@ content-type: application/json
             "attribute_name": "starting_point",
             "attribute_value": "random value",
             "filter_type": "exact"
-        }  
+        }
     ]
 }
