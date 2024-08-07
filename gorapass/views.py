@@ -2,13 +2,16 @@ import json
 import os
 import pandas as pd
 
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
-from django.forms.models import model_to_dict
 from django.conf import settings
+from django.contrib.auth import authenticate, login, logout
+from django.forms.models import model_to_dict
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
+from django.shortcuts import get_object_or_404, redirect
 
+from gorapass.models import CompletedHikes
 from gorapass.models import Stamps
 from gorapass.models import Hikes
+from gorapass.models import User
 
 from .src.filter_models import ModelFilter
 
@@ -55,6 +58,38 @@ def hikes(request):
 
     hike_dicts = [ model_to_dict(hike) for hike in hike_models ]
     return JsonResponse(hike_dicts, safe=False)
+
+def user(request, user_id):
+    if request.user.is_authenticated and request.user.pk == user_id:
+        return JsonResponse(model_to_dict(request.user))
+    else:
+        return redirect('login')
+    
+def user_completed_hikes(request, user_id):
+    if request.user.is_authenticated and request.user.pk == user_id:
+        completed_hike_models = Hikes.objects.filter(completedhikes__user_id=user_id)
+        hike_dicts = [ model_to_dict(hike) for hike in completed_hike_models ]
+        return JsonResponse(hike_dicts, safe=False)
+    else:
+        return redirect('login')
+
+def login_user(request):
+    """A temporary view that should eventually respond to POST requests to log users in"""
+    return HttpResponse('Login page goes here.')
+
+def login_test_user(request):
+    """A temporary view to log in a test user until we create the ability to log in different users"""
+    user = authenticate(request, username='jane_doe', password='gorapass')
+    if user is not None:
+        login(request, user)
+        return HttpResponse('Login successful')
+    else:
+        return HttpResponse('Login failed')
+
+def logout_user(request):
+    user = request.user
+    logout(request)
+    return HttpResponse(f'{user} has been logged out')
 
 def populate_stamps_datatable(request):
     ## Reset data table to null

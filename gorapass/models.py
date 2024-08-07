@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.constraints import UniqueConstraint
+from django.contrib.auth.models import User
 
 class Stamps(models.Model):
     stage_number = models.IntegerField(unique=True)
@@ -42,3 +44,27 @@ class Hikes(models.Model):
 
     def __str__(self):
       return self.hike_name
+
+class CompletedStamps(models.Model):
+    stamp = models.ForeignKey(Stamps, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['stamp', 'user'], name='unique_stamp_to_user'),
+        ]
+
+    def __str__(self):
+        return f'User: {self.user} has completed stamp: {self.stamp}'
+
+class CompletedHikes(models.Model):
+    hike = models.ForeignKey(Hikes, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['hike', 'user'], name='unique_hike_to_user'),
+        ]
+
+    def __str__(self):
+        return f'User: {self.user} has completed hike: {self.hike}'
