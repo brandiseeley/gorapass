@@ -287,3 +287,18 @@ content-type: application/json
         }
     ]
 }
+
+###
+# Sending stamp filter works
+GET http://localhost:8000/gorapass/hikes HTTP/1.1
+content-type: application/json
+
+{
+    "selectors": [
+        {
+            "attribute_name": "stamp_id",
+            "attribute_value": 1299,
+            "filter_type": "exact"
+        }
+    ]
+}
