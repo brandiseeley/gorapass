@@ -10,7 +10,7 @@ GET http://localhost:8000/gorapass/stamps HTTP/1.1
 # Request to fetch stamps with filtration criteria
 
 # Two stamps have this filtration criteria
-GET http://localhost:8000/gorapass/stamps HTTP/1.1
+POST http://localhost:8000/gorapass/stamps HTTP/1.1
 content-type: application/json
 
 {
