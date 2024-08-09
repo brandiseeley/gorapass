@@ -184,8 +184,8 @@ class HikesTestCase(TestCase):
 class UserTestCase(TestCase):
     def setUp(self):
         # Populate test stamps
-        Stamps.objects.create(**TEST_STAMP)
-        stamp1 = Stamps.objects.get(pk=1)
+        for stamp in TEST_STAMPS:
+            Stamps.objects.create(**stamp)
 
         # Populate test hikes
         for hike in TEST_HIKES:
@@ -266,4 +266,3 @@ class StampsTestCase(TestCase):
         # Check payload
         data = json.loads(response.content)
         self.assertEqual(data, TEST_STAMPS[0])
-
