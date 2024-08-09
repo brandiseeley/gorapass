@@ -287,7 +287,9 @@ TEST_HIKES = [
 ]
 
 class HikesTestCase(TestCase):
+    """Tests for accessing hikes from hikes/* endpoints"""
     def setUp(self):
+        """Populate test database with test hikes and stamps"""
         Stamps.objects.create(**TEST_STAMPS[0])
         for hike in TEST_HIKES:
             hike_data = hike | { 'stamp': Stamps.objects.get(pk=1) }
@@ -308,8 +310,172 @@ class HikesTestCase(TestCase):
         data = json.loads(response.content)
         self.assertEqual(data, TEST_HIKES[0])
 
+    def test_single_filter_hikes(self):
+        """POST requests with selectors will give us the matching hikes"""
+        selectors = [
+            {
+                "attribute_name": "ending_point",
+                "attribute_value": "Kocbekov dom na Korošici",
+                "filter_type": "exact",
+            },
+        ]
+        data = json.dumps({ 'selectors': selectors })
+
+        response = HikesTestCase.client.post('/gorapass/hikes', data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.content)
+        expected = TEST_HIKES[:4]
+
+        self.assertEqual(expected, data)
+
+    def test_multiple_filter_hikes(self):
+        """POST requests with multiple selectors will give us the matching hikes"""
+        selectors = [
+            {
+                "attribute_name": "ending_point",
+                "attribute_value": "Kocbekov dom na Korošici",
+                "filter_type": "exact",
+            },
+            {
+                "attribute_name": "total_elevation_gain",
+                "attribute_value": 1200,
+                "filter_type": "less_than",
+            },
+        ]
+        data = json.dumps({ 'selectors': selectors })
+
+        response = HikesTestCase.client.post('/gorapass/hikes', data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.content)
+        expected = [TEST_HIKES[0], TEST_HIKES[2]]
+
+        self.assertEqual(expected, data)
+
+    def test_partial_filter_works(self):
+        """Selectors with 'partial' filter will match parts of attribute"""
+        selectors = [
+            {
+                "attribute_name": "hike_name",
+                "attribute_value": "Koro",
+                "filter_type": "partial",
+            },
+        ]
+        data = json.dumps({ 'selectors': selectors })
+
+        response = HikesTestCase.client.post('/gorapass/hikes', data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.content)
+        expected = TEST_HIKES[:4]
+
+        self.assertEqual(expected, data)
+
+    def test_greater_than_with_less_than(self):
+        """Selectors 'less_than' and 'greater_than' can combine to create a range"""
+        selectors = [
+            {
+                "attribute_name": "total_elevation_gain",
+                "attribute_value": 1000,
+                "filter_type": "greater_than",
+            },
+            {
+                "attribute_name": "total_elevation_gain",
+                "attribute_value": 2000,
+                "filter_type": "less_than",
+            },
+        ]
+        data = json.dumps({ 'selectors': selectors })
+
+        response = HikesTestCase.client.post('/gorapass/hikes', data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.content)
+        expected = [TEST_HIKES[1], TEST_HIKES[3]]
+
+        self.assertEqual(expected, data)
+
+    def test_filters_without_matches_returns_empty_list(self):
+        """Valid selectors without any matches will return an empty list"""
+        selectors = [
+            {
+                "attribute_name": "starting_point",
+                "attribute_value": "random value",
+                "filter_type": "exact",
+            },
+        ]
+        data = json.dumps({ 'selectors': selectors })
+
+        response = HikesTestCase.client.post('/gorapass/hikes', data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.content)
+        expected = []
+
+        self.assertEqual(expected, data)
+
+    def test_bad_selector_rejected(self):
+        """Selectors with non-existant 'attribute_name' will return a 400 response"""
+        selectors = [
+            {
+                "attribute_name": "not_present",
+                "attribute_value": "Kocbekov dom na Korošici",
+                "filter_type": "exact",
+            },
+        ]
+        data = json.dumps({ 'selectors': selectors })
+
+        response = HikesTestCase.client.post('/gorapass/hikes', data, content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_missing_selector_key_rejected(self):
+        """Selectors missing keys will return a 400 response"""
+        selectors = [
+            {
+                "attribute_value": "Kocbekov dom na Korošici",
+                "filter_type": "exact",
+            },
+        ]
+        data = json.dumps({ 'selectors': selectors })
+
+        response = HikesTestCase.client.post('/gorapass/hikes', data, content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_extra_selector_keys_rejected(self):
+        """Selectors with extra keys will return a 400 response"""
+        selectors = [
+            {
+                "whoops": "this shouldn't be here",
+                "attribute_name": "ending_point",
+                "attribute_value": "Kocbekov dom na Korošici",
+                "filter_type": "exact"
+            }
+        ]
+        data = json.dumps({ 'selectors': selectors })
+
+        response = HikesTestCase.client.post('/gorapass/hikes', data, content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_invalid_filter_type_rejected(self):
+        """Selectors invalid filter type will return a 400 response"""
+        selectors = [
+            {
+                "attribute_name": "ending_point",
+                "attribute_value": "Kocbekov dom na Korošici",
+                "filter_type": "exact_match" # should be "exact"
+            }
+        ]
+        data = json.dumps({ 'selectors': selectors })
+
+        response = HikesTestCase.client.post('/gorapass/hikes', data, content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+
+
 class UserTestCase(TestCase):
+    """Test cases involving a user"""
     def setUp(self):
+        """Populate test database with stamps, hikes, and a test user"""
         # Populate test stamps
         for stamp in TEST_STAMPS:
             Stamps.objects.create(**stamp)
@@ -318,10 +484,9 @@ class UserTestCase(TestCase):
         for hike in TEST_HIKES:
             hike_data = hike | { 'stamp': Stamps.objects.get(pk=1) }
             Hikes.objects.create(**hike_data)
-        
+
         hike1 = Hikes.objects.get(pk=1)
         hike2 = Hikes.objects.get(pk=2)
-        hike3 = Hikes.objects.get(pk=3)
 
         # Populate test user
         jane = User.objects.create_user('jane_doe', 'jane@doe.com', 'gorapass')
@@ -366,8 +531,8 @@ class UserTestCase(TestCase):
 class StampsTestCase(TestCase):
     def setUp(self):
         for stamp in TEST_STAMPS:
-          Stamps.objects.create(**stamp)
-        StampsTestCase.client = Client()
+            Stamps.objects.create(**stamp)
+            StampsTestCase.client = Client()
 
     def test_stamps_endpoint(self):
         """GET requests to the stamps endpoint gives us a 200 status"""
@@ -388,8 +553,10 @@ class StampsTestCase(TestCase):
         response = StampsTestCase.client.get("/gorapass/stamps/1")
         self.assertEqual(response.status_code, 200)
 
-        print(response)
-
         # Check payload
         data = json.loads(response.content)
         self.assertEqual(data, TEST_STAMPS[0])
+
+
+
+### response = StampsTestCase.client.post("/gorapass/stamps", '{}', content_type="application/json")
