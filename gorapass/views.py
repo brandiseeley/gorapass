@@ -28,7 +28,7 @@ def stamps(request):
 
     if request.method == 'GET':
         stamp_dict = [ model_to_dict(stamp) for stamp in stamp_models ]
-    else:
+    elif request.method == 'POST':
         # Filter out stamps if there is filtration criteria on the request
         # TODO: Check that the body is JSON before trying to use `loads`
         body = json.loads(request.body)
@@ -40,6 +40,8 @@ def stamps(request):
 
             stamp_models = ModelFilter.filter_data(stamp_models, selectors)
         stamp_dict = [ model_to_dict(stamp) for stamp in stamp_models ]
+    else:
+        return HttpResponseBadRequest('Invalid method. Must use GET or POST.')
 
     return JsonResponse(stamp_dict, safe=False)
 
@@ -53,8 +55,7 @@ def hikes(request):
 
     if request.method == 'GET':
         hike_dicts = [ model_to_dict(stamp) for stamp in hike_models ]
-    else:
-        # print('HERE')
+    elif request.method == 'POST':
         # Filter out hikes if there is filtration criteria in the request
         # TODO: Check that the body is JSON before trying to use `loads`: json.decoder.JSONDecodeError
         body = json.loads(request.body)
@@ -67,6 +68,8 @@ def hikes(request):
             hike_models = ModelFilter.filter_data(hike_models, selectors)
 
         hike_dicts = [ model_to_dict(hike) for hike in hike_models ]
+    else:
+        return HttpResponseBadRequest('Invalid method. Must use GET or POST.')
 
     return JsonResponse(hike_dicts, safe=False)
 
