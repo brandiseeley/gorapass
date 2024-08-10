@@ -24,18 +24,24 @@ def stamp(request, stamp_id):
     return JsonResponse(stamp_dict, safe=False)
 
 def stamps(request):
-    stamp_model = Stamps.objects.all()
+    stamp_models = Stamps.objects.all()
 
-    # Filter out stamps if there is filtration criteria on the request
-    if request.body:
-        selectors = json.loads(request.body)['selectors']
-        valid_selectors_status = ModelFilter.validate_selectors(Stamps, selectors)
-        if not valid_selectors_status['success']:
-            return HttpResponseBadRequest(valid_selectors_status['message'])
+    if request.method == 'GET':
+        stamp_dict = [ model_to_dict(stamp) for stamp in stamp_models ]
+    elif request.method == 'POST':
+        # Filter out stamps if there is filtration criteria on the request
+        # TODO: Check that the body is JSON before trying to use `loads`
+        body = json.loads(request.body)
+        if body and body['selectors']:
+            selectors = json.loads(request.body)['selectors']
+            valid_selectors_status = ModelFilter.validate_selectors(Stamps, selectors)
+            if not valid_selectors_status['success']:
+                return HttpResponseBadRequest(valid_selectors_status['message'])
 
-        stamp_model = ModelFilter.filter_data(stamp_model, selectors)
-    stamp_dict = [ model_to_dict(stamp) for stamp in stamp_model ]
-
+            stamp_models = ModelFilter.filter_data(stamp_models, selectors)
+        stamp_dict = [ model_to_dict(stamp) for stamp in stamp_models ]
+    else:
+        return HttpResponseBadRequest('Invalid method. Must use GET or POST.')
 
     return JsonResponse(stamp_dict, safe=False)
 
@@ -47,16 +53,24 @@ def hike(request, hike_id):
 def hikes(request):
     hike_models = Hikes.objects.all()
 
-    # Filter out hikes if there is filtration criteria in the request
-    if request.body:
-        selectors = json.loads(request.body)['selectors']
-        valid_selectors_status = ModelFilter.validate_selectors(Hikes, selectors)
-        if not valid_selectors_status['success']:
-            return HttpResponseBadRequest(valid_selectors_status['message'])
+    if request.method == 'GET':
+        hike_dicts = [ model_to_dict(stamp) for stamp in hike_models ]
+    elif request.method == 'POST':
+        # Filter out hikes if there is filtration criteria in the request
+        # TODO: Check that the body is JSON before trying to use `loads`: json.decoder.JSONDecodeError
+        body = json.loads(request.body)
+        if body and body['selectors']:
+            selectors = json.loads(request.body)['selectors']
+            valid_selectors_status = ModelFilter.validate_selectors(Hikes, selectors)
+            if not valid_selectors_status['success']:
+                return HttpResponseBadRequest(valid_selectors_status['message'])
 
-        hike_models = ModelFilter.filter_data(hike_models, selectors)
+            hike_models = ModelFilter.filter_data(hike_models, selectors)
 
-    hike_dicts = [ model_to_dict(hike) for hike in hike_models ]
+        hike_dicts = [ model_to_dict(hike) for hike in hike_models ]
+    else:
+        return HttpResponseBadRequest('Invalid method. Must use GET or POST.')
+
     return JsonResponse(hike_dicts, safe=False)
 
 def user(request, user_id):
@@ -64,7 +78,7 @@ def user(request, user_id):
         return JsonResponse(model_to_dict(request.user))
     else:
         return redirect('login')
-    
+
 def user_completed_hikes(request, user_id):
     if request.user.is_authenticated and request.user.pk == user_id:
         completed_hike_models = Hikes.objects.filter(completedhikes__user_id=user_id)
