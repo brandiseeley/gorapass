@@ -26,7 +26,7 @@ def stamp(request, stamp_id):
 def stamps(request):
     stamp_models = Stamps.objects.all()
 
-    if request.method == 'GET':
+    if request.method == 'GET' or len(request.body) == 0:
         stamp_dict = [ model_to_dict(stamp) for stamp in stamp_models ]
     elif request.method == 'POST':
         # Filter out stamps if there is filtration criteria on the request
@@ -53,7 +53,7 @@ def hike(request, hike_id):
 def hikes(request):
     hike_models = Hikes.objects.all()
 
-    if request.method == 'GET':
+    if request.method == 'GET' or len(request.body) == 0:
         hike_dicts = [ model_to_dict(stamp) for stamp in hike_models ]
     elif request.method == 'POST':
         # Filter out hikes if there is filtration criteria in the request
