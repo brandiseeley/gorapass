@@ -87,6 +87,14 @@ def user_completed_hikes(request, user_id):
     else:
         return redirect('login')
 
+def user_completed_stamps(request, user_id):
+    if request.user.is_authenticated and request.user.pk == user_id:
+        completed_stamp_models = Stamps.objects.filter(completedstamps__user_id=user_id)
+        stamp_dicts = [ model_to_dict(stamp) for stamp in completed_stamp_models ]
+        return JsonResponse(stamp_dicts, safe=False)
+    else:
+        return redirect('login')
+
 def login_user(request):
     """A temporary view that should eventually respond to POST requests to log users in"""
     return HttpResponse('Login page goes here.')
