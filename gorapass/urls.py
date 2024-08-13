@@ -10,6 +10,7 @@ urlpatterns = [
     path('hikes/<int:hike_id>', views.hike, name='hike'),
     path('users/<int:user_id>', views.user, name='user'),
     path('users/<int:user_id>/completed_hikes', views.user_completed_hikes, name='user_completed_hikes'),
+    path('users/<int:user_id>/completed_stamps', views.user_completed_stamps, name='user_completed_stamps'),
     path('users/login', views.login_user, name='login'),
     path('users/logout', views.logout_user, name='logout'),
     path('users/login_test_user', views.login_test_user, name="login_test_user"),

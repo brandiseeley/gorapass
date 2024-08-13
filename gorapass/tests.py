@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.forms.models import model_to_dict
 from django.test import Client, TestCase
 
-from gorapass.models import Hikes, Stamps, CompletedHikes
+from gorapass.models import Hikes, Stamps, CompletedHikes, CompletedStamps
 
 TEST_STAMPS = [
   {
@@ -353,8 +353,8 @@ class HikesTestCase(TestCase):
 
         self.assertEqual(expected, data)
 
-    def test_partial_filter_works(self):
-        """Selectors with 'partial' filter will match parts of attribute"""
+    def test_partial_filter_works_hikes(self):
+        """Selectors with 'partial' filter will match parts of attribute for hikes"""
         selectors = [
             {
                 "attribute_name": "hike_name",
@@ -372,8 +372,8 @@ class HikesTestCase(TestCase):
 
         self.assertEqual(expected, data)
 
-    def test_greater_than_with_less_than(self):
-        """Selectors 'less_than' and 'greater_than' can combine to create a range"""
+    def test_greater_than_with_less_than_hikes(self):
+        """Selectors 'less_than' and 'greater_than' can combine to create a range for hikes"""
         selectors = [
             {
                 "attribute_name": "total_elevation_gain",
@@ -396,8 +396,8 @@ class HikesTestCase(TestCase):
 
         self.assertEqual(expected, data)
 
-    def test_filters_without_matches_returns_empty_list(self):
-        """Valid selectors without any matches will return an empty list"""
+    def test_filters_without_matches_returns_empty_list_hikes(self):
+        """Valid selectors for hikes without any matches will return an empty list"""
         selectors = [
             {
                 "attribute_name": "starting_point",
@@ -415,8 +415,8 @@ class HikesTestCase(TestCase):
 
         self.assertEqual(expected, data)
 
-    def test_bad_selector_rejected(self):
-        """Selectors with non-existant 'attribute_name' will return a 400 response"""
+    def test_bad_selector_rejected_hikes(self):
+        """Selectors with non-existant 'attribute_name' will return a 400 response for hikes"""
         selectors = [
             {
                 "attribute_name": "not_present",
@@ -429,8 +429,8 @@ class HikesTestCase(TestCase):
         response = HikesTestCase.client.post('/gorapass/hikes', data, content_type='application/json')
         self.assertEqual(response.status_code, 400)
 
-    def test_missing_selector_key_rejected(self):
-        """Selectors missing keys will return a 400 response"""
+    def test_missing_selector_key_rejected_hikes(self):
+        """Selectors missing keys will return a 400 response for hikes"""
         selectors = [
             {
                 "attribute_value": "Kocbekov dom na Korošici",
@@ -442,8 +442,8 @@ class HikesTestCase(TestCase):
         response = HikesTestCase.client.post('/gorapass/hikes', data, content_type='application/json')
         self.assertEqual(response.status_code, 400)
 
-    def test_extra_selector_keys_rejected(self):
-        """Selectors with extra keys will return a 400 response"""
+    def test_extra_selector_keys_rejected_hikes(self):
+        """Selectors with extra keys will return a 400 response for hikes"""
         selectors = [
             {
                 "whoops": "this shouldn't be here",
@@ -457,7 +457,7 @@ class HikesTestCase(TestCase):
         response = HikesTestCase.client.post('/gorapass/hikes', data, content_type='application/json')
         self.assertEqual(response.status_code, 400)
 
-    def test_invalid_filter_type_rejected(self):
+    def test_invalid_filter_type_rejected_hikes(self):
         """Selectors invalid filter type will return a 400 response"""
         selectors = [
             {
@@ -488,10 +488,15 @@ class UserTestCase(TestCase):
         hike1 = Hikes.objects.get(pk=1)
         hike2 = Hikes.objects.get(pk=2)
 
+        stamp1 = Stamps.objects.get(pk=1)
+        stamp2 = Stamps.objects.get(pk=2)
+
         # Populate test user
         jane = User.objects.create_user('jane_doe', 'jane@doe.com', 'gorapass')
         CompletedHikes.objects.create(hike=hike1, user=jane)
         CompletedHikes.objects.create(hike=hike2, user=jane)
+        CompletedStamps.objects.create(stamp=stamp1, user=jane)
+        CompletedStamps.objects.create(stamp=stamp2, user=jane)
 
         # Client for making requests
         UserTestCase.client = Client()
@@ -528,6 +533,20 @@ class UserTestCase(TestCase):
         data = json.loads(response.content)
         self.assertEqual(TEST_HIKES[0], data[0])
 
+    def test_fetch_completed_stamps(self):
+        UserTestCase.client.login(username='jane_doe', password='gorapass')
+        response = UserTestCase.client.get('/gorapass/users/1/completed_stamps')
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.content)
+        self.assertEqual([TEST_STAMPS[0], TEST_STAMPS[1]], data)
+
+    def test_fetch_completed_stamps_other_user(self):
+        """Trying to get another user's completed stamp's data results in redirect to login page."""
+        UserTestCase.client.login(username='jane_doe', password='gorapass')
+        response = UserTestCase.client.get('/gorapass/users/2/completed_stamps')
+        self.assertRedirects(response, '/gorapass/users/login')
+
 class StampsTestCase(TestCase):
     def setUp(self):
         for stamp in TEST_STAMPS:
@@ -556,6 +575,171 @@ class StampsTestCase(TestCase):
         # Check payload
         data = json.loads(response.content)
         self.assertEqual(data, TEST_STAMPS[0])
+
+    def test_single_filter_stamps(self):
+        """POST requests with selectors will give us the matching stamps"""
+        selectors = [
+            {
+                "attribute_name": "stamp_name",
+                "attribute_value": "Kocbekov dom na Korošici",
+                "filter_type": "exact",
+            },
+        ]
+        data = json.dumps({ 'selectors': selectors })
+
+        response = StampsTestCase.client.post('/gorapass/stamps', data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.content)[0]
+        expected = TEST_STAMPS[0]
+
+        self.assertEqual(expected, data)
+
+    def test_multiple_filter_stamps(self):
+        """POST requests with multiple selectors will give us the matching stamps"""
+        selectors = [
+            {
+                "attribute_name": "region",
+                "attribute_value": "Pohorje",
+                "filter_type": "exact",
+            },
+            {
+                "attribute_name": "elevation",
+                "attribute_value": 1200,
+                "filter_type": "greater_than",
+            },
+        ]
+        data = json.dumps({ 'selectors': selectors })
+
+        response = StampsTestCase.client.post('/gorapass/stamps', data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.content)
+        expected = [TEST_STAMPS[2], TEST_STAMPS[3]]
+
+        self.assertEqual(expected, data)
+
+    def test_partial_filter_works_stamps(self):
+        """Selectors with 'partial' filter will match parts of attribute for stamps"""
+        selectors = [
+            {
+                "attribute_name": "stamp_name",
+                "attribute_value": "Koč",
+                "filter_type": "partial",
+            },
+        ]
+        data = json.dumps({ 'selectors': selectors })
+
+        response = StampsTestCase.client.post('/gorapass/stamps', data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.content)
+        expected = [TEST_STAMPS[1], TEST_STAMPS[2], TEST_STAMPS[4]]
+
+        self.assertEqual(expected, data)
+
+    def test_greater_than_with_less_than_stamps(self):
+        """Selectors 'less_than' and 'greater_than' can combine to create a range for stamps"""
+        selectors = [
+            {
+                "attribute_name": "elevation",
+                "attribute_value": 1200,
+                "filter_type": "greater_than",
+            },
+            {
+                "attribute_name": "elevation",
+                "attribute_value": 1400,
+                "filter_type": "less_than",
+            },
+        ]
+        data = json.dumps({ 'selectors': selectors })
+
+        response = StampsTestCase.client.post('/gorapass/stamps', data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.content)
+        expected = [TEST_STAMPS[2], TEST_STAMPS[3], TEST_STAMPS[4]]
+
+        self.assertEqual(expected, data)
+
+    def test_filters_without_matches_returns_empty_list_stamps(self):
+        """Valid selectors for stamps without any matches will return an empty list"""
+        selectors = [
+            {
+                "attribute_name": "elevation",
+                "attribute_value": "random value",
+                "filter_type": "exact",
+            },
+        ]
+        data = json.dumps({ 'selectors': selectors })
+
+        response = StampsTestCase.client.post('/gorapass/stamps', data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.content)
+        expected = []
+
+        self.assertEqual(expected, data)
+
+    def test_bad_selector_rejected_stamps(self):
+        """Selectors with non-existant 'attribute_name' will return a 400 response for stamps"""
+        selectors = [
+            {
+                "attribute_name": "not_present",
+                "attribute_value": "Kocbekov dom na Korošici",
+                "filter_type": "exact",
+            },
+        ]
+        data = json.dumps({ 'selectors': selectors })
+
+        response = StampsTestCase.client.post('/gorapass/stamps', data, content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_missing_selector_key_rejected_stamps(self):
+        """Selectors missing keys will return a 400 response for stamps"""
+        selectors = [
+            {
+                "attribute_value": "Kocbekov dom na Korošici",
+                "filter_type": "exact",
+            },
+        ]
+        data = json.dumps({ 'selectors': selectors })
+
+        response = StampsTestCase.client.post('/gorapass/stamps', data, content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_extra_selector_keys_rejected_stamps(self):
+        """Selectors with extra keys will return a 400 response for stamps"""
+        selectors = [
+            {
+                "whoops": "this shouldn't be here",
+                "attribute_name": "ending_point",
+                "attribute_value": "Kocbekov dom na Korošici",
+                "filter_type": "exact"
+            }
+        ]
+        data = json.dumps({ 'selectors': selectors })
+
+        response = StampsTestCase.client.post('/gorapass/stamps', data, content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_invalid_filter_type_rejected_stamps(self):
+        """Selectors invalid filter type will return a 400 response for stamps"""
+        selectors = [
+            {
+                "attribute_name": "ending_point",
+                "attribute_value": "Kocbekov dom na Korošici",
+                "filter_type": "exact_match" # should be "exact"
+            }
+        ]
+        data = json.dumps({ 'selectors': selectors })
+
+        response = StampsTestCase.client.post('/gorapass/stamps', data, content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+
+
+
+
 
 
 
