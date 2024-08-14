@@ -604,6 +604,14 @@ class UserTestCase(TestCase):
         response = UserTestCase.client.get('/gorapass/users/2/completed_stamps')
         self.assertEqual(response.status_code, 401)
 
+    def test_mark_hike_complete(self):
+        """When a user is logged in, they can mark a hike as complete by providing the ID"""
+        UserTestCase.client.login(username='jane_doe', password='gorapass')
+
+        data = json.dumps({ 'hike_id': 3 })
+        response = UserTestCase.client.post('/gorapass/users/1/completed_hikes/add')
+        self.assertEqual(200, response.status)
+
 class StampsTestCase(TestCase):
     def setUp(self):
         for stamp in TEST_STAMPS:

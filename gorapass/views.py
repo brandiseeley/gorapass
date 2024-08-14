@@ -95,6 +95,17 @@ def user_completed_stamps(request, user_id):
 
     return HttpResponse('Unauthorized', status=401)
 
+def add_completed_hike(request, user_id):
+    if request.method != 'POST':
+        return HttpResponseBadRequest('Expected POST request')
+    if request.user.pk != user_id:
+        return HttpResponse
+        CompletedHikes.objects.create(hike=hike1, user=jane)
+
+
+def delete_completed_hike(request, user_id):
+    pass
+
 def login_user(request):
     """Logs a user in when given a POST request with JSON including a valid username and password"""
     if request.method == 'POST' and request.content_type == 'application/json':
