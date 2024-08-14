@@ -501,9 +501,66 @@ class UserTestCase(TestCase):
         # Client for making requests
         UserTestCase.client = Client()
 
+    def test_user_login_ok(self):
+        credentials = {
+            'username': 'jane_doe',
+            'password': 'gorapass',
+        }
+
+        data = json.dumps(credentials)
+        response = UserTestCase.client.post('/gorapass/users/login', data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+
+    def test_user_login_bad_username(self):
+        credentials = {
+            'username': 'janedoe',
+            'password': 'gorapass',
+        }
+
+        data = json.dumps(credentials)
+        response = UserTestCase.client.post('/gorapass/users/login', data, content_type='application/json')
+        self.assertEqual(response.status_code, 401)
+
+    def test_user_login_bad_password(self):
+        credentials = {
+            'username': 'jane_doe',
+            'password': 'Gorapass',
+        }
+
+        data = json.dumps(credentials)
+        response = UserTestCase.client.post('/gorapass/users/login', data, content_type='application/json')
+        self.assertEqual(response.status_code, 401)
+
+    def test_user_login_no_username(self):
+        credentials = {
+            'password': 'gorapass',
+        }
+
+        data = json.dumps(credentials)
+        response = UserTestCase.client.post('/gorapass/users/login', data, content_type='application/json')
+        self.assertEqual(response.status_code, 401)
+
+    def test_user_login_no_password(self):
+        credentials = {
+            'username': 'jane_doe',
+        }
+
+        data = json.dumps(credentials)
+        response = UserTestCase.client.post('/gorapass/users/login', data, content_type='application/json')
+        self.assertEqual(response.status_code, 401)
+
+    def test_user_login_no_credentials(self):
+        data = json.dumps({})
+        response = UserTestCase.client.post('/gorapass/users/login', data, content_type='application/json')
+        self.assertEqual(response.status_code, 401)
+
+    def test_user_login_no_body(self):
+        response = UserTestCase.client.post('/gorapass/users/login')
+        self.assertEqual(response.status_code, 400)
+
     def test_user_page_not_logged_in(self):
         response = UserTestCase.client.get('/gorapass/users/1')
-        self.assertRedirects(response, '/gorapass/users/login')
+        self.assertEqual(response.status_code, 401)
 
     def test_user_page_logged_in(self):
         UserTestCase.client.login(username='jane_doe', password='gorapass')
@@ -523,7 +580,7 @@ class UserTestCase(TestCase):
     def test_other_user_page_logged_in(self):
         UserTestCase.client.login(username='jane_doe', password='gorapass')
         response = UserTestCase.client.get('/gorapass/users/2')
-        self.assertRedirects(response, '/gorapass/users/login')
+        self.assertEqual(response.status_code, 401)
 
     def test_fetch_completed_hikes(self):
         UserTestCase.client.login(username='jane_doe', password='gorapass')
@@ -545,7 +602,7 @@ class UserTestCase(TestCase):
         """Trying to get another user's completed stamp's data results in redirect to login page."""
         UserTestCase.client.login(username='jane_doe', password='gorapass')
         response = UserTestCase.client.get('/gorapass/users/2/completed_stamps')
-        self.assertRedirects(response, '/gorapass/users/login')
+        self.assertEqual(response.status_code, 401)
 
 class StampsTestCase(TestCase):
     def setUp(self):

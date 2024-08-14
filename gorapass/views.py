@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.forms.models import model_to_dict
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 
 from gorapass.models import CompletedHikes
 from gorapass.models import Stamps
@@ -76,42 +76,54 @@ def hikes(request):
 def user(request, user_id):
     if request.user.is_authenticated and request.user.pk == user_id:
         return JsonResponse(model_to_dict(request.user))
-    else:
-        return redirect('login')
+
+    return HttpResponse('Unauthorized', status=401)
 
 def user_completed_hikes(request, user_id):
     if request.user.is_authenticated and request.user.pk == user_id:
         completed_hike_models = Hikes.objects.filter(completedhikes__user_id=user_id)
         hike_dicts = [ model_to_dict(hike) for hike in completed_hike_models ]
         return JsonResponse(hike_dicts, safe=False)
-    else:
-        return redirect('login')
+
+    return HttpResponse('Unauthorized', status=401)
 
 def user_completed_stamps(request, user_id):
     if request.user.is_authenticated and request.user.pk == user_id:
         completed_stamp_models = Stamps.objects.filter(completedstamps__user_id=user_id)
         stamp_dicts = [ model_to_dict(stamp) for stamp in completed_stamp_models ]
         return JsonResponse(stamp_dicts, safe=False)
-    else:
-        return redirect('login')
+
+    return HttpResponse('Unauthorized', status=401)
 
 def login_user(request):
-    """A temporary view that should eventually respond to POST requests to log users in"""
-    return HttpResponse('Login page goes here.')
+    """Logs a user in when given a POST request with JSON including a valid username and password"""
+    if request.method == 'POST' and request.content_type == 'application/json':
+        body = json.loads(request.body)
+        username = body.get('username')
+        password = body.get('password')
+
+        user_model = authenticate(request, username=username, password=password)
+        if user_model is not None:
+            login(request, user_model)
+            return HttpResponse(f'Successfully logged in as {user_model.username}')
+        else:
+            return HttpResponse('Unauthorized', status=401)
+
+    return HttpResponseBadRequest('Must provide POST request with credentials')
 
 def login_test_user(request):
     """A temporary view to log in a test user until we create the ability to log in different users"""
-    user = authenticate(request, username='jane_doe', password='gorapass')
-    if user is not None:
-        login(request, user)
+    user_model = authenticate(request, username='jane_doe', password='gorapass')
+    if user_model is not None:
+        login(request, user_model)
         return HttpResponse('Login successful')
     else:
         return HttpResponse('Login failed')
 
 def logout_user(request):
-    user = request.user
+    user_model = request.user
     logout(request)
-    return HttpResponse(f'{user} has been logged out')
+    return HttpResponse(f'{user_model} has been logged out')
 
 def populate_stamps_datatable(request):
     ## Reset data table to null
