@@ -491,12 +491,14 @@ class UserTestCase(TestCase):
         stamp1 = Stamps.objects.get(pk=1)
         stamp2 = Stamps.objects.get(pk=2)
 
-        # Populate test user
+        # Populate test users
         jane = User.objects.create_user('jane_doe', 'jane@doe.com', 'gorapass')
         CompletedHikes.objects.create(hike=hike1, user=jane)
         CompletedHikes.objects.create(hike=hike2, user=jane)
         CompletedStamps.objects.create(stamp=stamp1, user=jane)
         CompletedStamps.objects.create(stamp=stamp2, user=jane)
+
+        john = User.objects.create_user('john_doe', 'john@doe.com', 'gorapass')
 
         # Client for making requests
         UserTestCase.client = Client()
@@ -603,6 +605,96 @@ class UserTestCase(TestCase):
         UserTestCase.client.login(username='jane_doe', password='gorapass')
         response = UserTestCase.client.get('/gorapass/users/2/completed_stamps')
         self.assertEqual(response.status_code, 401)
+
+    def test_mark_hike_complete(self):
+        """When a user is logged in, they can mark a hike as complete by providing the ID"""
+        UserTestCase.client.login(username='jane_doe', password='gorapass')
+
+        completed_hikes_quantity_before = len(json.loads(UserTestCase.client.get('/gorapass/users/1/completed_hikes').content))
+
+        data = json.dumps({ 'hike_id': 3 })
+        response = UserTestCase.client.post('/gorapass/users/1/completed_hikes/add', data, content_type='application/json')
+        self.assertEqual(200, response.status_code)
+
+        completed_hikes = json.loads(UserTestCase.client.get('/gorapass/users/1/completed_hikes').content)
+        self.assertEqual(completed_hikes_quantity_before + 1, len(completed_hikes))
+
+        self.assertEqual(TEST_HIKES[2], completed_hikes[2])
+
+    def test_mark_hike_complete_not_logged_in(self):
+        """When a user isn't logged in, they cannot mark hikes complete"""
+        data = json.dumps({ 'hike_id': 3 })
+        response = UserTestCase.client.post('/gorapass/users/1/completed_hikes/add', data, content_type='application/json')
+        self.assertEqual(401, response.status_code)
+
+        UserTestCase.client.login(username='jane_doe', password='gorapass')
+        completed_hikes_quantity = len(json.loads(UserTestCase.client.get('/gorapass/users/1/completed_hikes').content))
+        self.assertEqual(2, completed_hikes_quantity)
+
+    def test_mark_hike_complete_different_user(self):
+        """A user cannot mark a hike as complete for a different user"""
+        UserTestCase.client.login(username='jane_doe', password='gorapass')
+
+        data = json.dumps({ 'hike_id': 3 })
+        response = UserTestCase.client.post('/gorapass/users/2/completed_hikes/add', data, content_type='application/json')
+        self.assertEqual(401, response.status_code)
+
+        UserTestCase.client.login(username='john_doe', password='gorapass')
+        completed_hikes_quantity = len(json.loads(UserTestCase.client.get('/gorapass/users/2/completed_hikes').content))
+        self.assertEqual(0, completed_hikes_quantity)
+    
+    def test_mark_non_existant_hike_complete(self):
+        """When given a hike ID that doesn't exist, we get a 404 response"""
+        UserTestCase.client.login(username='jane_doe', password='gorapass')
+
+        data = json.dumps({ 'hike_id': 42 })
+        response = UserTestCase.client.post('/gorapass/users/1/completed_hikes/add', data, content_type='application/json')
+        self.assertEqual(404, response.status_code)
+
+    def test_mark_stamp_complete(self):
+        """When a user is logged in, they can mark a stamp as complete by providing the ID"""
+        UserTestCase.client.login(username='jane_doe', password='gorapass')
+
+        completed_stamps_quantity_before = len(json.loads(UserTestCase.client.get('/gorapass/users/1/completed_stamps').content))
+
+        data = json.dumps({ 'stamp_id': 3 })
+        response = UserTestCase.client.post('/gorapass/users/1/completed_stamps/add', data, content_type='application/json')
+        self.assertEqual(200, response.status_code)
+
+        completed_stamps = json.loads(UserTestCase.client.get('/gorapass/users/1/completed_stamps').content)
+        self.assertEqual(completed_stamps_quantity_before + 1, len(completed_stamps))
+
+        self.assertEqual(TEST_STAMPS[2], completed_stamps[2])
+
+    def test_mark_stamp_complete_not_logged_in(self):
+        """When a user isn't logged in, they cannot mark stamps complete"""
+        data = json.dumps({ 'stamp_id': 3 })
+        response = UserTestCase.client.post('/gorapass/users/1/completed_stamps/add', data, content_type='application/json')
+        self.assertEqual(401, response.status_code)
+
+        UserTestCase.client.login(username='jane_doe', password='gorapass')
+        completed_stamps_quantity = len(json.loads(UserTestCase.client.get('/gorapass/users/1/completed_stamps').content))
+        self.assertEqual(2, completed_stamps_quantity)
+
+    def test_mark_stamp_complete_different_user(self):
+        """A user cannot mark a stamp as complete for a different user"""
+        UserTestCase.client.login(username='jane_doe', password='gorapass')
+
+        data = json.dumps({ 'stamp_id': 3 })
+        response = UserTestCase.client.post('/gorapass/users/2/completed_stamps/add', data, content_type='application/json')
+        self.assertEqual(401, response.status_code)
+
+        UserTestCase.client.login(username='john_doe', password='gorapass')
+        completed_stamps_quantity = len(json.loads(UserTestCase.client.get('/gorapass/users/2/completed_stamps').content))
+        self.assertEqual(0, completed_stamps_quantity)
+    
+    def test_mark_non_existant_stamp_complete(self):
+        """When given a stamp ID that doesn't exist, we get a 404 response"""
+        UserTestCase.client.login(username='jane_doe', password='gorapass')
+
+        data = json.dumps({ 'stamp_id': 42 })
+        response = UserTestCase.client.post('/gorapass/users/1/completed_stamps/add', data, content_type='application/json')
+        self.assertEqual(404, response.status_code)
 
 class StampsTestCase(TestCase):
     def setUp(self):

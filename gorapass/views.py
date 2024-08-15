@@ -9,6 +9,7 @@ from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404
 
 from gorapass.models import CompletedHikes
+from gorapass.models import CompletedStamps
 from gorapass.models import Stamps
 from gorapass.models import Hikes
 from gorapass.models import User
@@ -87,6 +88,23 @@ def user_completed_hikes(request, user_id):
 
     return HttpResponse('Unauthorized', status=401)
 
+def add_completed_hike(request, user_id):
+    if (request.method != 'POST' or request.content_type != 'application/json'):
+        return HttpResponseBadRequest('Expected POST request')
+    if request.user.pk != user_id:
+        return HttpResponse('Unauthorized', status=401)
+
+    body = json.loads(request.body)
+    if body and body['hike_id']:
+        hike_id = json.loads(request.body)['hike_id']
+        hike_model = get_object_or_404(Hikes, pk=hike_id)
+
+    CompletedHikes.objects.create(hike=hike_model, user=request.user)
+    return HttpResponse(f'Marked hike: {hike_model} as completed by: {request.user}')
+
+def delete_completed_hike(request, user_id):
+    pass
+
 def user_completed_stamps(request, user_id):
     if request.user.is_authenticated and request.user.pk == user_id:
         completed_stamp_models = Stamps.objects.filter(completedstamps__user_id=user_id)
@@ -94,6 +112,23 @@ def user_completed_stamps(request, user_id):
         return JsonResponse(stamp_dicts, safe=False)
 
     return HttpResponse('Unauthorized', status=401)
+
+def add_completed_stamp(request, user_id):
+    if (request.method != 'POST' or request.content_type != 'application/json'):
+        return HttpResponseBadRequest('Expected POST request')
+    if request.user.pk != user_id:
+        return HttpResponse('Unauthorized', status=401)
+
+    body = json.loads(request.body)
+    if body and body['stamp_id']:
+        stamp_id = json.loads(request.body)['stamp_id']
+        stamp_model = get_object_or_404(Stamps, pk=stamp_id)
+
+    CompletedStamps.objects.create(stamp=stamp_model, user=request.user)
+    return HttpResponse(f'Marked stamp: {stamp_model} as completed by: {request.user}')
+
+def delete_completed_stamp(request, user_id):
+    pass
 
 def login_user(request):
     """Logs a user in when given a POST request with JSON including a valid username and password"""
