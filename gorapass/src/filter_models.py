@@ -44,6 +44,9 @@ class ModelFilter:
 
     @classmethod
     def validate_selectors(cls, data_models, selectors):
+        if not selectors:
+            return { 'success': False,
+                     'message': 'No selectors provided' }
         for selector in selectors:
 
             # Check that the keys for the selector object are correct
