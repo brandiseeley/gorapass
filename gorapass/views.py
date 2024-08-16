@@ -1,4 +1,3 @@
-import json
 import os
 import pandas as pd
 
@@ -12,9 +11,9 @@ from gorapass.models import CompletedHikes
 from gorapass.models import CompletedStamps
 from gorapass.models import Stamps
 from gorapass.models import Hikes
-from gorapass.models import User
 
-from .src.filter_models import ModelFilter
+from gorapass.src.filter_models import ModelFilter
+from gorapass.src.utils import get_json_data_or_401
 
 def index(request):
     return HttpResponse('Hello, World. This is Naya and Brandi\'s super cool app.')
@@ -27,23 +26,15 @@ def stamp(request, stamp_id):
 def stamps(request):
     stamp_models = Stamps.objects.all()
 
-    if request.method == 'GET' or len(request.body) == 0:
-        stamp_dict = [ model_to_dict(stamp) for stamp in stamp_models ]
-    elif request.method == 'POST':
-        # Filter out stamps if there is filtration criteria on the request
-        # TODO: Check that the body is JSON before trying to use `loads`
-        body = json.loads(request.body)
-        if body and body['selectors']:
-            selectors = json.loads(request.body)['selectors']
-            valid_selectors_status = ModelFilter.validate_selectors(Stamps, selectors)
-            if not valid_selectors_status['success']:
-                return HttpResponseBadRequest(valid_selectors_status['message'])
+    if request.method != 'GET':
+        selectors = get_json_data_or_401(request).get('selectors')
+        valid_selectors_status = ModelFilter.validate_selectors(Stamps, selectors)
+        if not valid_selectors_status['success']:
+            return HttpResponseBadRequest(valid_selectors_status['message'])
 
-            stamp_models = ModelFilter.filter_data(stamp_models, selectors)
-        stamp_dict = [ model_to_dict(stamp) for stamp in stamp_models ]
-    else:
-        return HttpResponseBadRequest('Invalid method. Must use GET or POST.')
+        stamp_models = ModelFilter.filter_data(stamp_models, selectors)
 
+    stamp_dict = [ model_to_dict(stamp) for stamp in stamp_models ]
     return JsonResponse(stamp_dict, safe=False)
 
 def hike(request, hike_id):
@@ -54,25 +45,16 @@ def hike(request, hike_id):
 def hikes(request):
     hike_models = Hikes.objects.all()
 
-    if request.method == 'GET' or len(request.body) == 0:
-        hike_dicts = [ model_to_dict(stamp) for stamp in hike_models ]
-    elif request.method == 'POST':
-        # Filter out hikes if there is filtration criteria in the request
-        # TODO: Check that the body is JSON before trying to use `loads`: json.decoder.JSONDecodeError
-        body = json.loads(request.body)
-        if body and body['selectors']:
-            selectors = json.loads(request.body)['selectors']
-            valid_selectors_status = ModelFilter.validate_selectors(Hikes, selectors)
-            if not valid_selectors_status['success']:
-                return HttpResponseBadRequest(valid_selectors_status['message'])
+    if request.method != 'GET':
+        selectors = get_json_data_or_401(request).get('selectors')
+        valid_selectors_status = ModelFilter.validate_selectors(Hikes, selectors)
+        if not valid_selectors_status['success']:
+            return HttpResponseBadRequest(valid_selectors_status['message'])
 
-            hike_models = ModelFilter.filter_data(hike_models, selectors)
+        hike_models = ModelFilter.filter_data(hike_models, selectors)
 
-        hike_dicts = [ model_to_dict(hike) for hike in hike_models ]
-    else:
-        return HttpResponseBadRequest('Invalid method. Must use GET or POST.')
-
-    return JsonResponse(hike_dicts, safe=False)
+    hike_dict = [ model_to_dict(hike) for hike in hike_models ]
+    return JsonResponse(hike_dict, safe=False)
 
 def user(request, user_id):
     if request.user.is_authenticated and request.user.pk == user_id:
@@ -89,16 +71,11 @@ def user_completed_hikes(request, user_id):
     return HttpResponse('Unauthorized', status=401)
 
 def add_completed_hike(request, user_id):
-    if (request.method != 'POST' or request.content_type != 'application/json'):
-        return HttpResponseBadRequest('Expected POST request')
     if request.user.pk != user_id:
         return HttpResponse('Unauthorized', status=401)
 
-    body = json.loads(request.body)
-    if body and body['hike_id']:
-        hike_id = json.loads(request.body)['hike_id']
-        hike_model = get_object_or_404(Hikes, pk=hike_id)
-
+    hike_id = get_json_data_or_401(request).get('hike_id')
+    hike_model = get_object_or_404(Hikes, pk=hike_id)
     CompletedHikes.objects.create(hike=hike_model, user=request.user)
     return HttpResponse(f'Marked hike: {hike_model} as completed by: {request.user}')
 
@@ -114,16 +91,11 @@ def user_completed_stamps(request, user_id):
     return HttpResponse('Unauthorized', status=401)
 
 def add_completed_stamp(request, user_id):
-    if (request.method != 'POST' or request.content_type != 'application/json'):
-        return HttpResponseBadRequest('Expected POST request')
     if request.user.pk != user_id:
         return HttpResponse('Unauthorized', status=401)
 
-    body = json.loads(request.body)
-    if body and body['stamp_id']:
-        stamp_id = json.loads(request.body)['stamp_id']
-        stamp_model = get_object_or_404(Stamps, pk=stamp_id)
-
+    stamp_id = get_json_data_or_401(request).get('stamp_id')
+    stamp_model = get_object_or_404(Stamps, pk=stamp_id)
     CompletedStamps.objects.create(stamp=stamp_model, user=request.user)
     return HttpResponse(f'Marked stamp: {stamp_model} as completed by: {request.user}')
 
@@ -132,22 +104,19 @@ def delete_completed_stamp(request, user_id):
 
 def login_user(request):
     """Logs a user in when given a POST request with JSON including a valid username and password"""
-    if request.method == 'POST' and request.content_type == 'application/json':
-        body = json.loads(request.body)
-        username = body.get('username')
-        password = body.get('password')
+    body = get_json_data_or_401(request)
+    username = body.get('username')
+    password = body.get('password')
 
-        user_model = authenticate(request, username=username, password=password)
-        if user_model is not None:
-            login(request, user_model)
-            return HttpResponse(f'Successfully logged in as {user_model.username}')
-        else:
-            return HttpResponse('Unauthorized', status=401)
-
-    return HttpResponseBadRequest('Must provide POST request with credentials')
+    user_model = authenticate(request, username=username, password=password)
+    if user_model is not None:
+        login(request, user_model)
+        return HttpResponse(f'Successfully logged in as {user_model.username}')
+    else:
+        return HttpResponse('Unauthorized', status=401)
 
 def login_test_user(request):
-    """A temporary view to log in a test user until we create the ability to log in different users"""
+    """A temporary view to log in test user until we create the ability to log in different users"""
     user_model = authenticate(request, username='jane_doe', password='gorapass')
     if user_model is not None:
         login(request, user_model)

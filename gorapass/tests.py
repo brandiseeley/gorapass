@@ -558,7 +558,7 @@ class UserTestCase(TestCase):
 
     def test_user_login_no_body(self):
         response = UserTestCase.client.post('/gorapass/users/login')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 401)
 
     def test_user_page_not_logged_in(self):
         response = UserTestCase.client.get('/gorapass/users/1')
