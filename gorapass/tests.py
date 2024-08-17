@@ -607,7 +607,7 @@ class UserTestCase(TestCase):
 
     def test_fetch_completed_hikes(self):
         UserTestCase.client.login(username='jane_doe', password='gorapass')
-        response = UserTestCase.client.get('/gorapass/users/1/completed_hikes')
+        response = UserTestCase.client.get('/gorapass/users/completed_hikes')
         self.assertEqual(response.status_code, 200)
 
         data = json.loads(response.content)
@@ -615,29 +615,23 @@ class UserTestCase(TestCase):
 
     def test_fetch_completed_stamps(self):
         UserTestCase.client.login(username='jane_doe', password='gorapass')
-        response = UserTestCase.client.get('/gorapass/users/1/completed_stamps')
+        response = UserTestCase.client.get('/gorapass/users/completed_stamps')
         self.assertEqual(response.status_code, 200)
 
         data = json.loads(response.content)
         self.assertEqual([TEST_STAMPS[0], TEST_STAMPS[1]], data)
 
-    def test_fetch_completed_stamps_other_user(self):
-        """Trying to get another user's completed stamp's data results in redirect to login page."""
-        UserTestCase.client.login(username='jane_doe', password='gorapass')
-        response = UserTestCase.client.get('/gorapass/users/2/completed_stamps')
-        self.assertEqual(response.status_code, 401)
-
     def test_mark_hike_complete(self):
         """When a user is logged in, they can mark a hike as complete by providing the ID"""
         UserTestCase.client.login(username='jane_doe', password='gorapass')
 
-        completed_hikes_quantity_before = len(json.loads(UserTestCase.client.get('/gorapass/users/1/completed_hikes').content))
+        completed_hikes_quantity_before = len(json.loads(UserTestCase.client.get('/gorapass/users/completed_hikes').content))
 
         data = json.dumps({ 'hike_id': 3 })
         response = UserTestCase.client.post('/gorapass/users/1/completed_hikes/add', data, content_type='application/json')
         self.assertEqual(200, response.status_code)
 
-        completed_hikes = json.loads(UserTestCase.client.get('/gorapass/users/1/completed_hikes').content)
+        completed_hikes = json.loads(UserTestCase.client.get('/gorapass/users/completed_hikes').content)
         self.assertEqual(completed_hikes_quantity_before + 1, len(completed_hikes))
 
         self.assertEqual(TEST_HIKES[2], completed_hikes[2])
@@ -649,7 +643,7 @@ class UserTestCase(TestCase):
         self.assertEqual(401, response.status_code)
 
         UserTestCase.client.login(username='jane_doe', password='gorapass')
-        completed_hikes_quantity = len(json.loads(UserTestCase.client.get('/gorapass/users/1/completed_hikes').content))
+        completed_hikes_quantity = len(json.loads(UserTestCase.client.get('/gorapass/users/completed_hikes').content))
         self.assertEqual(2, completed_hikes_quantity)
 
     def test_mark_hike_complete_different_user(self):
@@ -661,7 +655,7 @@ class UserTestCase(TestCase):
         self.assertEqual(401, response.status_code)
 
         UserTestCase.client.login(username='john_doe', password='gorapass')
-        completed_hikes_quantity = len(json.loads(UserTestCase.client.get('/gorapass/users/2/completed_hikes').content))
+        completed_hikes_quantity = len(json.loads(UserTestCase.client.get('/gorapass/users/completed_hikes').content))
         self.assertEqual(0, completed_hikes_quantity)
     
     def test_mark_non_existant_hike_complete(self):
@@ -676,13 +670,13 @@ class UserTestCase(TestCase):
         """When a user is logged in, they can mark a stamp as complete by providing the ID"""
         UserTestCase.client.login(username='jane_doe', password='gorapass')
 
-        completed_stamps_quantity_before = len(json.loads(UserTestCase.client.get('/gorapass/users/1/completed_stamps').content))
+        completed_stamps_quantity_before = len(json.loads(UserTestCase.client.get('/gorapass/users/completed_stamps').content))
 
         data = json.dumps({ 'stamp_id': 3 })
         response = UserTestCase.client.post('/gorapass/users/1/completed_stamps/add', data, content_type='application/json')
         self.assertEqual(200, response.status_code)
 
-        completed_stamps = json.loads(UserTestCase.client.get('/gorapass/users/1/completed_stamps').content)
+        completed_stamps = json.loads(UserTestCase.client.get('/gorapass/users/completed_stamps').content)
         self.assertEqual(completed_stamps_quantity_before + 1, len(completed_stamps))
 
         self.assertEqual(TEST_STAMPS[2], completed_stamps[2])
@@ -694,7 +688,7 @@ class UserTestCase(TestCase):
         self.assertEqual(401, response.status_code)
 
         UserTestCase.client.login(username='jane_doe', password='gorapass')
-        completed_stamps_quantity = len(json.loads(UserTestCase.client.get('/gorapass/users/1/completed_stamps').content))
+        completed_stamps_quantity = len(json.loads(UserTestCase.client.get('/gorapass/users/completed_stamps').content))
         self.assertEqual(2, completed_stamps_quantity)
 
     def test_mark_stamp_complete_different_user(self):
@@ -706,7 +700,7 @@ class UserTestCase(TestCase):
         self.assertEqual(401, response.status_code)
 
         UserTestCase.client.login(username='john_doe', password='gorapass')
-        completed_stamps_quantity = len(json.loads(UserTestCase.client.get('/gorapass/users/2/completed_stamps').content))
+        completed_stamps_quantity = len(json.loads(UserTestCase.client.get('/gorapass/users/completed_stamps').content))
         self.assertEqual(0, completed_stamps_quantity)
     
     def test_mark_non_existant_stamp_complete(self):

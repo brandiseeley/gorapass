@@ -62,9 +62,9 @@ def user(request, user_id):
 
     return HttpResponse('Unauthorized', status=401)
 
-def user_completed_hikes(request, user_id):
-    if request.user.is_authenticated and request.user.pk == user_id:
-        completed_hike_models = Hikes.objects.filter(completedhikes__user_id=user_id)
+def user_completed_hikes(request):
+    if request.user.is_authenticated:
+        completed_hike_models = Hikes.objects.filter(completedhikes__user_id=request.user.pk)
         hike_dicts = [ model_to_dict(hike) for hike in completed_hike_models ]
         return JsonResponse(hike_dicts, safe=False)
 
@@ -82,9 +82,9 @@ def add_completed_hike(request, user_id):
 def delete_completed_hike(request, user_id):
     pass
 
-def user_completed_stamps(request, user_id):
-    if request.user.is_authenticated and request.user.pk == user_id:
-        completed_stamp_models = Stamps.objects.filter(completedstamps__user_id=user_id)
+def user_completed_stamps(request):
+    if request.user.is_authenticated:
+        completed_stamp_models = Stamps.objects.filter(completedstamps__user_id=request.user.pk)
         stamp_dicts = [ model_to_dict(stamp) for stamp in completed_stamp_models ]
         return JsonResponse(stamp_dicts, safe=False)
 
