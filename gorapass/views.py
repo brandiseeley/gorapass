@@ -102,6 +102,12 @@ def add_completed_stamp(request, user_id):
 def delete_completed_stamp(request, user_id):
     pass
 
+def is_authenticated(request):
+    if request.user.is_authenticated:
+        return HttpResponse(f'You\'re already logged in as {request.user}')
+    else:
+        return HttpResponse('Unauthorized', status=401)
+
 def login_user(request):
     """Logs a user in when given a POST request with JSON including a valid username and password"""
     body = get_json_data_or_401(request)

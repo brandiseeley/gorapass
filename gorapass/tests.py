@@ -564,6 +564,27 @@ class UserTestCase(TestCase):
         response = UserTestCase.client.get('/gorapass/users/1')
         self.assertEqual(response.status_code, 401)
 
+    def test_is_authenticated(self):
+        response = UserTestCase.client.get('/gorapass/users/is_authenticated')
+        self.assertEqual(response.status_code, 401)
+
+        credentials = {
+            'username': 'jane_doe',
+            'password': 'gorapass',
+        }
+
+        data = json.dumps(credentials)
+        response = UserTestCase.client.post('/gorapass/users/login', data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+
+        response = UserTestCase.client.get('/gorapass/users/is_authenticated')
+        self.assertEqual(response.status_code, 200)
+
+        UserTestCase.client.get('/gorapass/users/logout')
+
+        response = UserTestCase.client.get('/gorapass/users/is_authenticated')
+        self.assertEqual(response.status_code, 401)
+
     def test_user_page_logged_in(self):
         UserTestCase.client.login(username='jane_doe', password='gorapass')
         response = UserTestCase.client.get('/gorapass/users/1')
