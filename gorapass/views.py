@@ -105,8 +105,8 @@ def user_completed_stamps(request):
 
     return HttpResponse('Unauthorized', status=401)
 
-def add_completed_stamp(request, user_id):
-    if request.user.pk != user_id:
+def add_completed_stamp(request):
+    if request.user.is_authenticated is False:
         return HttpResponse('Unauthorized', status=401)
 
     stamp_id = get_json_data_or_401(request).get('stamp_id')

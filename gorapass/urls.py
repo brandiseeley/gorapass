@@ -16,6 +16,7 @@ urlpatterns = [
     path('users/open_stamps', views.user_open_stamps, name='user_open_stamps'),
     path('users/completed_stamps', views.user_completed_stamps, name='user_completed_stamps'),
     path('users/completed_stamps/add', views.add_completed_stamp, name='add_completed_stamp'),
+    path('users/completed_stamps/delete', views.delete_completed_stamp, name='delete_completed_stamp'),
     path('users/is_authenticated', views.is_authenticated, name='is_authenticated'),
     path('users/login', views.login_user, name='login'),
     path('users/logout', views.logout_user, name='logout'),
