@@ -23,6 +23,15 @@ def stamp(request, stamp_id):
     stamp_dict = model_to_dict(stamp_model)
     return JsonResponse(stamp_dict, safe=False)
 
+def get_stamp_status(request, stamp_id):
+    # if request.user.is_authenticated: ## Need Brandi to explain this to me.
+    stamp_model = get_object_or_404(Stamps, id=stamp_id)
+    is_completed = CompletedStamps.objects.filter(stamp=stamp_model, user_id=request.user.pk).exists()
+    if is_completed:
+        return JsonResponse({'status':'Complete'})
+    return JsonResponse({'status':'Open'})
+
+
 def stamps(request):
     stamp_models = Stamps.objects.all()
 
@@ -82,6 +91,12 @@ def add_completed_hike(request, user_id):
 def delete_completed_hike(request, user_id):
     pass
 
+def user_open_stamps(request):
+    if request.user.is_authenticated:
+        open_stamp_models = Stamps.objects.exclude(completedstamps__user_id=request.user.pk)
+        stamp_dicts = [ model_to_dict(stamp) for stamp in open_stamp_models ]
+        return JsonResponse(stamp_dicts, safe=False)
+
 def user_completed_stamps(request):
     if request.user.is_authenticated:
         completed_stamp_models = Stamps.objects.filter(completedstamps__user_id=request.user.pk)
@@ -90,8 +105,8 @@ def user_completed_stamps(request):
 
     return HttpResponse('Unauthorized', status=401)
 
-def add_completed_stamp(request, user_id):
-    if request.user.pk != user_id:
+def add_completed_stamp(request):
+    if request.user.is_authenticated is False:
         return HttpResponse('Unauthorized', status=401)
 
     stamp_id = get_json_data_or_401(request).get('stamp_id')
@@ -99,8 +114,14 @@ def add_completed_stamp(request, user_id):
     CompletedStamps.objects.create(stamp=stamp_model, user=request.user)
     return HttpResponse(f'Marked stamp: {stamp_model} as completed by: {request.user}')
 
-def delete_completed_stamp(request, user_id):
-    pass
+def delete_completed_stamp(request):
+    if request.user.is_authenticated is False:
+        return HttpResponse('Unauthorized', status=401)
+
+    stamp_id = get_json_data_or_401(request).get('stamp_id')
+    stamp_model = get_object_or_404(Stamps, pk=stamp_id)
+    CompletedStamps.objects.filter(stamp=stamp_model, user=request.user).delete()
+    return HttpResponse(f'Marked stamp: {stamp_model} as open by: {request.user}')
 
 def is_authenticated(request):
     if request.user.is_authenticated:
