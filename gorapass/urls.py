@@ -7,6 +7,7 @@ urlpatterns = [
     path('hikes', views.hikes, name='hikes'),
     path('stamps', views.stamps, name='stamps'),
     path('stamps/<int:stamp_id>', views.stamp, name='stamp'),
+    path('stamps/<int:stamp_id>/get_status', views.get_stamp_status, name='get_stamp_status'),
     path('hikes/<int:hike_id>', views.hike, name='hike'),
     path('users/<int:user_id>', views.user, name='user'),
     path('users/completed_hikes', views.user_completed_hikes, name='user_completed_hikes'),

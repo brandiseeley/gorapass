@@ -629,6 +629,22 @@ class UserTestCase(TestCase):
         data = json.loads(response.content)
         self.assertEqual([TEST_STAMPS[2], TEST_STAMPS[3], TEST_STAMPS[4]], data)
 
+    def test_check_stamp_status_open(self):
+        UserTestCase.client.login(username='jane_doe', password='gorapass')
+        response = UserTestCase.client.get('/gorapass/stamps/3/get_status')
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.content)
+        self.assertEqual('Open', data['status'])
+
+    def test_check_stamp_status_complete(self):
+        UserTestCase.client.login(username='jane_doe', password='gorapass')
+        response = UserTestCase.client.get('/gorapass/stamps/1/get_status')
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.content)
+        self.assertEqual('Complete', data['status'])
+
     def test_mark_hike_complete(self):
         """When a user is logged in, they can mark a hike as complete by providing the ID"""
         UserTestCase.client.login(username='jane_doe', password='gorapass')
