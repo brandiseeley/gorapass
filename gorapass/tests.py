@@ -634,6 +634,7 @@ class UserTestCase(TestCase):
         response = UserTestCase.client.get('/gorapass/stamps/3/get_status')
         self.assertEqual(response.status_code, 200)
 
+
         data = json.loads(response.content)
         self.assertEqual('Open', data['status'])
 
@@ -697,7 +698,7 @@ class UserTestCase(TestCase):
         completed_stamps_quantity_before = len(json.loads(UserTestCase.client.get('/gorapass/users/completed_stamps').content))
 
         data = json.dumps({ 'stamp_id': 3 })
-        response = UserTestCase.client.post('/gorapass/users/1/completed_stamps/add', data, content_type='application/json')
+        response = UserTestCase.client.post('/gorapass/users/completed_stamps/add', data, content_type='application/json')
         self.assertEqual(200, response.status_code)
 
         completed_stamps = json.loads(UserTestCase.client.get('/gorapass/users/completed_stamps').content)
@@ -708,24 +709,12 @@ class UserTestCase(TestCase):
     def test_mark_stamp_complete_not_logged_in(self):
         """When a user isn't logged in, they cannot mark stamps complete"""
         data = json.dumps({ 'stamp_id': 3 })
-        response = UserTestCase.client.post('/gorapass/users/1/completed_stamps/add', data, content_type='application/json')
+        response = UserTestCase.client.post('/gorapass/users/completed_stamps/add', data, content_type='application/json')
         self.assertEqual(401, response.status_code)
 
         UserTestCase.client.login(username='jane_doe', password='gorapass')
         completed_stamps_quantity = len(json.loads(UserTestCase.client.get('/gorapass/users/completed_stamps').content))
         self.assertEqual(2, completed_stamps_quantity)
-
-    def test_mark_stamp_complete_different_user(self):
-        """A user cannot mark a stamp as complete for a different user"""
-        UserTestCase.client.login(username='jane_doe', password='gorapass')
-
-        data = json.dumps({ 'stamp_id': 3 })
-        response = UserTestCase.client.post('/gorapass/users/2/completed_stamps/add', data, content_type='application/json')
-        self.assertEqual(401, response.status_code)
-
-        UserTestCase.client.login(username='john_doe', password='gorapass')
-        completed_stamps_quantity = len(json.loads(UserTestCase.client.get('/gorapass/users/completed_stamps').content))
-        self.assertEqual(0, completed_stamps_quantity)
 
     def test_mark_non_existant_stamp_complete(self):
         """When given a stamp ID that doesn't exist, we get a 404 response"""
