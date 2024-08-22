@@ -706,6 +706,21 @@ class UserTestCase(TestCase):
 
         self.assertEqual(TEST_STAMPS[2], completed_stamps[2])
 
+    def test_mark_stamp_open(self):
+        """When a user is logged in, they can mark a stamp as open by providing the ID"""
+        UserTestCase.client.login(username='jane_doe', password='gorapass')
+
+        completed_stamps_quantity_before = len(json.loads(UserTestCase.client.get('/gorapass/users/completed_stamps').content))
+
+        data = json.dumps({'stamp_id': 1})
+        response = UserTestCase.client.post('/gorapass/users/completed_stamps/delete', data, content_type='application/json')
+        self.assertEqual(200, response.status_code)
+
+        completed_stamps = json.loads(UserTestCase.client.get('/gorapass/users/completed_stamps').content)
+        self.assertEqual(completed_stamps_quantity_before - 1, len(completed_stamps))
+
+        self.assertEqual(TEST_STAMPS[1], completed_stamps[0])
+
     def test_mark_stamp_complete_not_logged_in(self):
         """When a user isn't logged in, they cannot mark stamps complete"""
         data = json.dumps({ 'stamp_id': 3 })

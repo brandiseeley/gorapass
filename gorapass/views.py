@@ -114,8 +114,14 @@ def add_completed_stamp(request):
     CompletedStamps.objects.create(stamp=stamp_model, user=request.user)
     return HttpResponse(f'Marked stamp: {stamp_model} as completed by: {request.user}')
 
-def delete_completed_stamp(request, user_id):
-    pass
+def delete_completed_stamp(request):
+    if request.user.is_authenticated is False:
+        return HttpResponse('Unauthorized', status=401)
+
+    stamp_id = get_json_data_or_401(request).get('stamp_id')
+    stamp_model = get_object_or_404(Stamps, pk=stamp_id)
+    CompletedStamps.objects.filter(stamp=stamp_model, user=request.user).delete()
+    return HttpResponse(f'Marked stamp: {stamp_model} as open by: {request.user}')
 
 def is_authenticated(request):
     if request.user.is_authenticated:
