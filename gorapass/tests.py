@@ -621,6 +621,14 @@ class UserTestCase(TestCase):
         data = json.loads(response.content)
         self.assertEqual([TEST_STAMPS[0], TEST_STAMPS[1]], data)
 
+    def test_fetch_open_stamps(self):
+        UserTestCase.client.login(username='jane_doe', password='gorapass')
+        response = UserTestCase.client.get('/gorapass/users/open_stamps')
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.content)
+        self.assertEqual([TEST_STAMPS[2], TEST_STAMPS[3], TEST_STAMPS[4]], data)
+
     def test_mark_hike_complete(self):
         """When a user is logged in, they can mark a hike as complete by providing the ID"""
         UserTestCase.client.login(username='jane_doe', password='gorapass')
@@ -657,7 +665,7 @@ class UserTestCase(TestCase):
         UserTestCase.client.login(username='john_doe', password='gorapass')
         completed_hikes_quantity = len(json.loads(UserTestCase.client.get('/gorapass/users/completed_hikes').content))
         self.assertEqual(0, completed_hikes_quantity)
-    
+
     def test_mark_non_existant_hike_complete(self):
         """When given a hike ID that doesn't exist, we get a 404 response"""
         UserTestCase.client.login(username='jane_doe', password='gorapass')
@@ -702,7 +710,7 @@ class UserTestCase(TestCase):
         UserTestCase.client.login(username='john_doe', password='gorapass')
         completed_stamps_quantity = len(json.loads(UserTestCase.client.get('/gorapass/users/completed_stamps').content))
         self.assertEqual(0, completed_stamps_quantity)
-    
+
     def test_mark_non_existant_stamp_complete(self):
         """When given a stamp ID that doesn't exist, we get a 404 response"""
         UserTestCase.client.login(username='jane_doe', password='gorapass')

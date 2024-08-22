@@ -12,6 +12,7 @@ urlpatterns = [
     path('users/completed_hikes', views.user_completed_hikes, name='user_completed_hikes'),
     path('users/<int:user_id>/completed_hikes/add', views.add_completed_hike, name='add_completed_hike'),
     path('users/<int:user_id>/completed_hikes/delete', views.delete_completed_hike, name='delete_completed_hike'),
+    path('users/open_stamps', views.user_open_stamps, name='user_open_stamps'),
     path('users/completed_stamps', views.user_completed_stamps, name='user_completed_stamps'),
     path('users/<int:user_id>/completed_stamps/add', views.add_completed_stamp, name='add_completed_stamp'),
     path('users/is_authenticated', views.is_authenticated, name='is_authenticated'),

@@ -82,6 +82,12 @@ def add_completed_hike(request, user_id):
 def delete_completed_hike(request, user_id):
     pass
 
+def user_open_stamps(request):
+    if request.user.is_authenticated:
+        open_stamp_models = Stamps.objects.exclude(completedstamps__user_id=request.user.pk)
+        stamp_dicts = [ model_to_dict(stamp) for stamp in open_stamp_models ]
+        return JsonResponse(stamp_dicts, safe=False)
+
 def user_completed_stamps(request):
     if request.user.is_authenticated:
         completed_stamp_models = Stamps.objects.filter(completedstamps__user_id=request.user.pk)
