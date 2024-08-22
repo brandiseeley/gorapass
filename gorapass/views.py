@@ -24,12 +24,12 @@ def stamp(request, stamp_id):
     return JsonResponse(stamp_dict, safe=False)
 
 def get_stamp_status(request, stamp_id):
-    if request.user.is_authenticated:
-        stamp_model = get_object_or_404(Stamps, id=stamp_id)
-        is_completed = CompletedStamps.objects.filter(stamp=stamp_model, user_id=request.user.pk).exists()
-        if is_completed:
-            return JsonResponse({'status':'Complete'})
-        return JsonResponse({'status':'Open'})
+    # if request.user.is_authenticated: ## Need Brandi to explain this to me.
+    stamp_model = get_object_or_404(Stamps, id=stamp_id)
+    is_completed = CompletedStamps.objects.filter(stamp=stamp_model, user_id=request.user.pk).exists()
+    if is_completed:
+        return JsonResponse({'status':'Complete'})
+    return JsonResponse({'status':'Open'})
 
 
 def stamps(request):
